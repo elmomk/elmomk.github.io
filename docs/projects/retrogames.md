@@ -1,50 +1,49 @@
-# Retro Arcade
+# :material-gamepad-variant: Retro Arcade
 
-A collection of 9 retro browser games playable on any device, with native ports for the Miyoo Mini Plus handheld. Installable as a PWA for offline play.
+!!! quote "9 retro browser games with Miyoo Mini Plus ports — single-file HTML5 Canvas + Rust/Macroquad"
 
 ## Games
 
-| Game | Genre |
-|------|-------|
-| Nano Wizards | Platformer |
-| Neon Defender | Shoot 'em Up |
-| Shadow Blade | Action Platformer |
-| Arena Blitz | Twin-Stick Shooter |
-| Dragon Fury | Beat 'em Up |
-| Pixel Knight | Mario-like Platformer |
-| Nova Evader | Bullet Hell |
-| Chrome Viper | Cyberpunk Shooter |
-| Neon Runner | Cyberpunk Platformer |
+<div class="grid cards" markdown>
+
+-   :material-sword:{ .lg .middle } **Nano Wizards** — Platformer
+-   :material-rocket-launch:{ .lg .middle } **Neon Defender** — Shoot 'em Up
+-   :material-knife:{ .lg .middle } **Shadow Blade** — Action Platformer
+-   :material-target:{ .lg .middle } **Arena Blitz** — Twin-Stick Shooter
+-   :material-dragon:{ .lg .middle } **Dragon Fury** — Beat 'em Up
+-   :material-castle:{ .lg .middle } **Pixel Knight** — Mario-like Platformer
+-   :material-star-shooting:{ .lg .middle } **Nova Evader** — Bullet Hell
+-   :material-pistol:{ .lg .middle } **Chrome Viper** — Cyberpunk Shooter
+-   :material-run-fast:{ .lg .middle } **Neon Runner** — Cyberpunk Platformer
+
+</div>
 
 ## Features
 
-- Single-file HTML5 Canvas games — no dependencies, no build step
-- Fullscreen mobile with floating touch joystick (Brawl Stars-style)
-- Installable as a PWA with offline caching
-- Procedural pixel-art sprites and Web Audio API sound effects
-- CRT scanline overlay and retro aesthetic
-- Miyoo Mini Plus native ports in Rust/Macroquad
+- :material-file-code: Single-file HTML5 Canvas games — no dependencies, no build step
+- :material-cellphone: Fullscreen mobile with floating touch joystick (Brawl Stars-style)
+- :material-download: Installable as a PWA with offline caching
+- :material-image-auto-adjust: Procedural pixel-art sprites and Web Audio API sound effects
+- :material-monitor: CRT scanline overlay and retro aesthetic
+- :fontawesome-brands-rust: Miyoo Mini Plus native ports in Rust/Macroquad
 
 ## Screenshots
 
-<div class="screenshot-grid">
-  <figure>
-    <img src="/assets/screenshots/retrogames/micro.png" alt="Nano Wizards" width="250">
-    <figcaption>Nano Wizards</figcaption>
-  </figure>
-  <figure>
-    <img src="/assets/screenshots/retrogames/space.png" alt="Neon Defender" width="250">
-    <figcaption>Neon Defender</figcaption>
-  </figure>
-  <figure>
-    <img src="/assets/screenshots/retrogames/shadow.png" alt="Shadow Blade" width="250">
-    <figcaption>Shadow Blade</figcaption>
-  </figure>
-  <figure>
-    <img src="/assets/screenshots/retrogames/arena.png" alt="Arena Blitz" width="250">
-    <figcaption>Arena Blitz</figcaption>
-  </figure>
-</div>
+=== "Nano Wizards"
+
+    ![Nano Wizards](../assets/screenshots/retrogames/micro.png){ width="350" }
+
+=== "Neon Defender"
+
+    ![Neon Defender](../assets/screenshots/retrogames/space.png){ width="350" }
+
+=== "Shadow Blade"
+
+    ![Shadow Blade](../assets/screenshots/retrogames/shadow.png){ width="350" }
+
+=== "Arena Blitz"
+
+    ![Arena Blitz](../assets/screenshots/retrogames/arena.png){ width="350" }
 
 <div class="project-banner retro" style="margin-top: 3rem;">
 

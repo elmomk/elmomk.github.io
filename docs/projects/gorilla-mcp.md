@@ -1,51 +1,52 @@
-# gorilla_mcp
+# :material-robot: gorilla_mcp
 
-MCP (Model Context Protocol) server and chat interface for strength training coaching. Bridges Claude AI to training data via gorilla_coach and Garmin biometrics via gapi.
+!!! quote "MCP server + chatbot gateway — gives Claude access to training data and Garmin biometrics"
 
 ## Architecture
 
-```
-                      ┌──────────────┐
-                      │  Claude Code │
-                      │  or Claude AI│
-                      └──────┬───────┘
-                             │
-                        MCP Protocol
-                     (stdio or HTTP/SSE)
-                             │
-                      ┌──────┴───────┐
-                      │ gorilla_mcp  │
-                      │ (MCP Server) │
-                      └──┬────────┬──┘
-                         │        │
-               ┌─────────┘        └────────┐
-               │                           │
-        ┌──────┴──────┐            ┌───────┴──────┐
-        │gorilla_coach│            │  garmin_api  │
-        │    API      │            │   service    │
-        └─────────────┘            └──────────────┘
-        Training data              Garmin biometrics
-        5/3/1 auto-reg             HRV, sleep, stress
+```mermaid
+graph TD
+    A[Claude Code / Claude AI] -->|MCP Protocol| B[gorilla_mcp]
+    B -->|REST API| C[gorilla_coach]
+    B -->|REST API| D[garmin_api]
+    C --- E[Training data<br/>5/3/1, auto-reg]
+    D --- F[Garmin biometrics<br/>HRV, sleep, stress]
 ```
 
-## What It Does
+## Capabilities
 
-Gives Claude access to your training and biometric data through:
+<div class="grid cards" markdown>
 
-- **14 tools** — query training logs, check readiness, log sets, analyze recovery
-- **3 resources** — training plans, exercise library, user profiles
-- **4 prompts** — SITREP, AAR, DEBRIEF, coaching conversation
+-   :material-wrench:{ .lg .middle } **14 Tools**
+
+    ---
+
+    Query training logs, check readiness, log sets, analyze recovery trends, get auto-regulation advice.
+
+-   :material-database:{ .lg .middle } **3 Resources**
+
+    ---
+
+    Training plans, exercise library, user profiles — exposed as MCP resources.
+
+-   :material-message-text:{ .lg .middle } **4 Prompts**
+
+    ---
+
+    SITREP (daily status), AAR (after action review), DEBRIEF (weekly trends), coaching conversation.
+
+</div>
 
 ## Binaries
 
 | Binary | Purpose |
 |--------|---------|
-| **gorilla_mcp** | MCP server — tools, resources, prompts. Stdio or HTTP/SSE transport. |
-| **gorilla_chatbot** | Web chat UI that spawns Claude CLI with MCP tools. Also serves as LLM gateway for gorilla_coach. |
+| :material-server: **gorilla_mcp** | MCP server — tools, resources, prompts. Stdio or HTTP/SSE transport. |
+| :material-chat: **gorilla_chatbot** | Web chat UI that spawns Claude CLI with MCP tools. Also serves as LLM gateway. |
 
 ## Stack
 
-Rust (2024 edition), Axum, Claude AI via MCP protocol.
+:fontawesome-brands-rust: Rust (2024 edition) · :material-server: Axum · :material-robot: Claude AI via MCP protocol
 
 <div class="project-banner gorilla" style="margin-top: 3rem;">
 

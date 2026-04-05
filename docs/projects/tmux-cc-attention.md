@@ -1,31 +1,33 @@
-# tmux_cc_attention
+# :material-bell: tmux_cc_attention
 
-A tmux plugin that provides visual indicators for Claude Code session state.
+!!! quote "Visual indicators for Claude Code session state — know when Claude needs you"
 
 ## Indicators
 
 | State | Symbol | Color | Meaning |
-|-------|--------|-------|---------|
-| Active | `*` | Green | Claude Code is working |
-| Attention | `!` | Red | Claude Code needs your input |
-| Stopped | `-` | Blue | Claude Code has stopped |
+|-------|:------:|:-----:|---------|
+| Active | `*` | :material-circle:{ style="color: #10b981" } Green | Claude Code is working |
+| Attention | `!` | :material-circle:{ style="color: #ef4444" } Red | Claude Code needs your input |
+| Stopped | `-` | :material-circle:{ style="color: #3b82f6" } Blue | Claude Code has stopped |
 
 ## Features
 
-- Persistent state — colors stay until actual state changes
-- Cross-session awareness — status bar shows counts from other sessions (`!3 *2 -1`)
-- Session dashboard — `prefix + G` popup to see all Claude windows (requires fzf)
-- Done notification — inline indicator when Claude finishes
-- Themes — Kanagawa Dragon, Catppuccin Mocha, Tokyo Night, Dracula
+- :material-pin: **Persistent state** — colors stay until actual state changes
+- :material-monitor-multiple: **Cross-session** — status bar shows counts from other sessions (`!3 *2 -1`)
+- :material-dock-window: **Session dashboard** — `prefix + G` popup to see all Claude windows (requires fzf)
+- :material-check-circle: **Done notification** — inline indicator when Claude finishes
+- :material-palette: **Themes** — Kanagawa Dragon, Catppuccin Mocha, Tokyo Night, Dracula
 
-## Installation (TPM)
+## Installation
 
-```tmux
-set -g @claude-theme 'catppuccin-mocha'
-set -g @claude-popup-key 'G'
-set -g @claude-done-popup 'on'
-set -g @plugin 'elmomk/tmux_cc_attention'
-```
+!!! example "TPM (tmux Plugin Manager)"
+
+    ```tmux
+    set -g @claude-theme 'catppuccin-mocha'
+    set -g @claude-popup-key 'G'
+    set -g @claude-done-popup 'on'
+    set -g @plugin 'elmomk/tmux_cc_attention'
+    ```
 
 <div class="project-banner claude" style="margin-top: 3rem;">
 

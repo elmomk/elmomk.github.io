@@ -1,47 +1,105 @@
-# cc-watcher.nvim
+# :material-eye: cc-watcher.nvim
 
-Neovim plugin that monitors [Claude Code](https://claude.ai/claude-code) changes in real time. See what Claude is editing in a sidebar, view inline diffs, and navigate between hunks — all without leaving your editor.
+!!! quote "Real-time file change monitor for Claude Code — sidebar, inline diffs, and 14 integrations"
 
-Designed for a **tmux split workflow**: Claude Code on the left, Neovim on the right.
+    Designed for a **tmux split workflow**: Claude Code on the left, Neovim on the right.
 
 ## Features
 
-- **Sidebar** — tree-style file list with directory grouping, modification times, and +N/-M diff stats
-- **Inline diff** — colored highlights showing exactly what changed
-- **Hunk navigation** — jump between changes, revert individual hunks
-- **Commit history** — browse past commits where Claude edited files
-- **Session awareness** — reads all JSONL session logs for multi-session support
-- **MCP bridge** — WebSocket server for direct Claude Code communication
-- **14 integrations** — snacks, fzf-lua, trouble, diffview, conform, neotest, gitsigns, neo-tree, edgy, fidget, overseer, flash, mini.diff, notifier
+<div class="grid cards" markdown>
+
+-   :material-file-tree:{ .lg .middle } **Sidebar**
+
+    ---
+
+    Tree-style file list with directory grouping, modification times, and +N/-M diff stats.
+
+-   :material-format-color-highlight:{ .lg .middle } **Inline Diff**
+
+    ---
+
+    Colored highlights showing exactly what changed — added, modified, deleted lines.
+
+-   :material-swap-vertical:{ .lg .middle } **Hunk Navigation**
+
+    ---
+
+    `]c` / `[c` to jump between changes, `cr` to revert individual hunks.
+
+-   :material-history:{ .lg .middle } **Commit History**
+
+    ---
+
+    Browse past commits where Claude edited files, view commit diffs in the sidebar.
+
+-   :material-connection:{ .lg .middle } **MCP Bridge**
+
+    ---
+
+    WebSocket server (RFC 6455) for direct Claude Code communication.
+
+-   :material-puzzle:{ .lg .middle } **14 Integrations**
+
+    ---
+
+    snacks, fzf-lua, trouble, diffview, conform, neotest, gitsigns, neo-tree, edgy, fidget, overseer, flash, mini.diff, notifier.
+
+</div>
 
 ## Screenshots
 
-### Sidebar
-![Sidebar](https://raw.githubusercontent.com/elmomk/cc-watcher.nvim/main/assets/sidebar.png)
+=== "Sidebar"
 
-### Inline Diff
-![Inline Diff](https://raw.githubusercontent.com/elmomk/cc-watcher.nvim/main/assets/inline-diff.png)
+    ![Sidebar](/assets/screenshots/cc-watcher/sidebar.png){ width="450" }
 
-### Snacks Picker
-![Snacks Picker](https://raw.githubusercontent.com/elmomk/cc-watcher.nvim/main/assets/snacks-picker.png)
+    *Tree-style file list with directory grouping and live stats*
 
-### Diffview
-![Diffview](https://raw.githubusercontent.com/elmomk/cc-watcher.nvim/main/assets/diffview.png)
+=== "Inline Diff"
+
+    ![Inline Diff](/assets/screenshots/cc-watcher/inline-diff.png){ width="450" }
+
+    *Colored inline highlights showing what Claude changed*
+
+=== "Snacks Picker"
+
+    ![Snacks Picker](/assets/screenshots/cc-watcher/snacks-picker.png){ width="450" }
+
+    *Fuzzy-find changed files with colored diff preview*
+
+=== "Hunks"
+
+    ![Snacks Hunks](/assets/screenshots/cc-watcher/snacks-hunks.png){ width="450" }
+
+    *Browse individual hunks across all changed files*
+
+=== "Trouble"
+
+    ![Trouble](/assets/screenshots/cc-watcher/trouble.png){ width="450" }
+
+    *Diagnostic-like list of all Claude changes*
+
+=== "Diffview"
+
+    ![Diffview](/assets/screenshots/cc-watcher/diffview.png){ width="450" }
+
+    *Side-by-side diff: pre-Claude snapshot vs current file*
 
 ## Quick Start
 
-```lua
-{
-    "elmomk/cc-watcher.nvim",
-    event = { "BufReadPost", "BufNewFile" },
-    cmd = { "ClaudeSidebar", "ClaudeDiff", "ClaudeSnacks" },
-    keys = {
-        { "<leader>cs", desc = "Claude - toggle sidebar" },
-        { "<leader>cd", desc = "Claude - toggle inline diff" },
-    },
-    opts = {},
-}
-```
+!!! example "lazy.nvim"
+
+    ```lua
+    {
+        "elmomk/cc-watcher.nvim",
+        event = { "BufReadPost", "BufNewFile" },
+        cmd = { "ClaudeSidebar", "ClaudeDiff", "ClaudeSnacks" },
+        keys = {
+            { "<leader>cs", desc = "Claude - toggle sidebar" },
+            { "<leader>cd", desc = "Claude - toggle inline diff" },
+        },
+        opts = {},
+    }
+    ```
 
 <div class="project-banner claude" style="margin-top: 3rem;">
 

@@ -1,53 +1,78 @@
-# Life Manager
+# :material-cellphone: Life Manager
 
-A cyberpunk-themed mobile-first PWA for managing daily life.
+!!! quote "Cyberpunk-themed mobile-first PWA for managing daily life — Rust + Dioxus + Tailwind"
 
 ## Modules
 
-- **To-Dos** — Task tracking with quick-add chips and optional due dates
-- **Groceries** — Shopping list with swipe-to-complete and dynamic defaults
-- **Shopee Pick-ups** — Package tracking with OCR-based code extraction from screenshots (Traditional Chinese + English)
-- **Watchlist** — Movie / Series / Anime / Cartoon tracker
-- **Cycle Tracker** — Period logging with symptom tracking, next-cycle prediction, and PMS care reminders
+<div class="grid cards" markdown>
 
-## Key Capabilities
+-   :material-checkbox-marked:{ .lg .middle } **To-Dos**
 
-- Swipe right to complete, swipe left to delete
-- OCR reads Shopee screenshots — extracts product name, store location, and pickup code
-- Tracks who completed each item via Tailscale identity
-- Installable PWA with offline caching
+    ---
+
+    Task tracking with quick-add chips and optional due dates. Swipe to complete or delete.
+
+-   :material-cart:{ .lg .middle } **Groceries**
+
+    ---
+
+    Shopping list with swipe-to-complete and dynamic defaults. Saved favorites for quick re-add.
+
+-   :material-package:{ .lg .middle } **Shopee Pick-ups**
+
+    ---
+
+    Package tracking with OCR extraction from screenshots — product name, store location, pickup code. Traditional Chinese + English.
+
+-   :material-filmstrip:{ .lg .middle } **Watchlist**
+
+    ---
+
+    Movie / Series / Anime / Cartoon tracker with status management.
+
+-   :material-heart-pulse:{ .lg .middle } **Cycle Tracker**
+
+    ---
+
+    Period logging with symptom tracking, next-cycle prediction, PMS care reminders 10 days before.
+
+</div>
 
 ## Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Language | Rust (2021 edition) |
-| Frontend | Dioxus 0.7 (fullstack, WebAssembly) |
-| Styling | Tailwind CSS v4 with custom cyberpunk theme |
-| Database | SQLite with r2d2 connection pooling |
-| OCR | Tesseract (chi_tra + eng) |
-| Auth | Tailscale user headers |
+<div class="grid" markdown>
+
+:fontawesome-brands-rust: **Dioxus 0.7** — Fullstack WASM
+{ .card }
+
+:material-palette: **Tailwind CSS v4** — Cyberpunk theme
+{ .card }
+
+:material-database: **SQLite** — r2d2 pool
+{ .card }
+
+:material-text-recognition: **Tesseract** — OCR (chi_tra + eng)
+{ .card }
+
+</div>
 
 ## Screenshots
 
-<div class="screenshot-grid">
-  <figure>
-    <img src="/assets/screenshots/lifemanager/todos.png" alt="To-Dos" width="250">
-    <figcaption>To-Dos</figcaption>
-  </figure>
-  <figure>
-    <img src="/assets/screenshots/lifemanager/groceries.png" alt="Groceries" width="250">
-    <figcaption>Groceries</figcaption>
-  </figure>
-  <figure>
-    <img src="/assets/screenshots/lifemanager/shopee.png" alt="Shopee" width="250">
-    <figcaption>Shopee Pick-ups</figcaption>
-  </figure>
-  <figure>
-    <img src="/assets/screenshots/lifemanager/watchlist.png" alt="Watchlist" width="250">
-    <figcaption>Watchlist</figcaption>
-  </figure>
-</div>
+=== "To-Dos"
+
+    ![To-Dos](../assets/screenshots/lifemanager/todos.png){ width="280" }
+
+=== "Groceries"
+
+    ![Groceries](../assets/screenshots/lifemanager/groceries.png){ width="280" }
+
+=== "Shopee"
+
+    ![Shopee](../assets/screenshots/lifemanager/shopee.png){ width="280" }
+
+=== "Watchlist"
+
+    ![Watchlist](../assets/screenshots/lifemanager/watchlist.png){ width="280" }
 
 <div class="project-banner cyber" style="margin-top: 3rem;">
 

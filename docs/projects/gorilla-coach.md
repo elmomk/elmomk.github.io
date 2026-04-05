@@ -1,40 +1,86 @@
-# gorilla_coach
+# :material-dumbbell: gorilla_coach
 
-Full-stack fitness coaching app built entirely in Rust.
+!!! quote "A self-hosted AI fitness coaching platform built entirely in Rust"
 
 ## Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | [Leptos](https://leptos.dev/) (Rust WASM) |
-| Backend | [Axum](https://github.com/tokio-rs/axum) |
-| Database | PostgreSQL |
-| Deployment | Docker |
+<div class="grid" markdown>
+
+:fontawesome-brands-rust: **Leptos** — Frontend (Rust WASM)
+{ .card }
+
+:material-server: **Axum** — Backend API
+{ .card }
+
+:material-database: **PostgreSQL** — Database
+{ .card }
+
+:material-docker: **Docker** — Deployment
+{ .card }
+
+</div>
 
 ## Features
 
-- Strength training program management
-- Mesocycle and macrocycle planning
-- AI-powered coaching via MCP integration ([gorilla_chatbot](https://github.com/elmomk/gorilla_chatbot))
-- Garmin Connect data sync via [gapi](gapi.md)
-- Mobile-first PWA
+<div class="grid cards" markdown>
+
+-   :material-weight-lifter:{ .lg .middle } **Training Tracker**
+
+    ---
+
+    Log sets against periodized plans (5/3/1, BBB, hypertrophy). Draft persistence, Google Sheets write-back.
+
+-   :material-chart-timeline-variant:{ .lg .middle } **Mesocycle Management**
+
+    ---
+
+    DB-backed templates with cycle percentages, per-set weights, auto-progression, macrocycle sequencing.
+
+-   :material-robot:{ .lg .middle } **AI Coach**
+
+    ---
+
+    Conversational coaching via Claude AI through [gorilla_mcp](gorilla-mcp.md). SITREP, AAR, and DEBRIEF reports.
+
+-   :material-watch:{ .lg .middle } **Garmin Sync**
+
+    ---
+
+    Biometric data via [gapi](gapi.md) — 50+ daily metrics, activities, dashboard visualizations.
+
+-   :material-shield-check:{ .lg .middle } **Security**
+
+    ---
+
+    ChaCha20Poly1305 encryption at rest, CSRF, rate limiting, CSP headers, signed cookies.
+
+-   :material-cellphone:{ .lg .middle } **Mobile PWA**
+
+    ---
+
+    Installable Progressive Web App with offline caching, service worker, IndexedDB persistence.
+
+</div>
 
 ## Screenshots
 
-<div class="screenshot-grid">
-  <figure>
-    <img src="/assets/screenshots/gorilla-coach/dashboard.png" alt="Dashboard" width="250">
-    <figcaption>Dashboard — Garmin biometrics</figcaption>
-  </figure>
-  <figure>
-    <img src="/assets/screenshots/gorilla-coach/training.png" alt="Training" width="250">
-    <figcaption>Training — log sets</figcaption>
-  </figure>
-  <figure>
-    <img src="/assets/screenshots/gorilla-coach/chat.png" alt="Chat" width="250">
-    <figcaption>AI coaching chat</figcaption>
-  </figure>
-</div>
+=== "Dashboard"
+
+    ![Dashboard](../assets/screenshots/gorilla-coach/dashboard.png){ width="300" }
+
+    *Garmin biometrics at a glance — recovery score, vitals, alerts*
+
+=== "Training"
+
+    ![Training](../assets/screenshots/gorilla-coach/training.png){ width="300" }
+
+    *Log sets against your periodized plan*
+
+=== "AI Coach"
+
+    ![Chat](../assets/screenshots/gorilla-coach/chat.png){ width="300" }
+
+    *Conversational coaching with SITREP, AAR, and DEBRIEF modes*
 
 <div class="project-banner gorilla" style="margin-top: 3rem;">
 
