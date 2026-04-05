@@ -214,35 +214,15 @@ atlasing.
 
 Every game follows a finite state machine pattern for managing game flow:
 
-```
-                    +-------+
-           +------->| START |
-           |        +---+---+
-           |            |
-           |            | (Press Start)
-           |            v
-           |        +-------+
-           |        | STORY |  (Typewriter intro text)
-           |        +---+---+
-           |            |
-           |            | (Text complete + keypress)
-           |            v
-      +----+---+    +--------+
-      |GAMEOVER|<---|PLAYING |<--------+
-      +----+---+    +---+----+         |
-           |            |              |
-           |            | (Level end)  |
-           |            v              |
-           |     +------+------+       |
-           |     |LEVEL_STORY  |-------+
-           |     +-------------+
-           |
-           |    (Press Start to retry)
-           +------------+
-                        |
-                    +---v--+
-                    | START |
-                    +------+
+```mermaid
+graph TD
+    START["START"] -->|Press Start| STORY["STORY<br/>(Typewriter intro text)"]
+    STORY -->|Text complete + keypress| PLAYING["PLAYING"]
+    PLAYING -->|Level end| LEVEL_STORY["LEVEL_STORY"]
+    LEVEL_STORY --> PLAYING
+    PLAYING --> GAMEOVER["GAMEOVER"]
+    PLAYING --> WIN["WIN"]
+    GAMEOVER -->|Press Start to retry| START
 ```
 
 ### JavaScript Implementation

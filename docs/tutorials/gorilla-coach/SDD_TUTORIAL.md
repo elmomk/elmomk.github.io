@@ -121,19 +121,18 @@ Inconsistency compounds into bugs.
 
 Consider Gorilla Coach without a spec:
 
-```
-Prompt: "Store Garmin data in Postgres"
-
-AI Decision Tree (unknowns):
-├── What fields? (42 fields? 10? 100?)
-├── What types? (grams or kg for weight? seconds or minutes for sleep?)
-├── Composite PK or auto-increment?
-├── Upsert on conflict? Replace? Error?
-├── If upsert, COALESCE to preserve existing non-null? Or overwrite?
-├── One table or multiple tables for different data categories?
-├── TimescaleDB hypertable? Regular table?
-├── Encrypt sensitive fields? Which ones are sensitive?
-└── ...every decision here multiplies the possibility space
+```mermaid
+graph TD
+    P["Prompt: 'Store Garmin data in Postgres'"] --> D["AI Decision Tree (unknowns)"]
+    D --> F1["What fields? (42? 10? 100?)"]
+    D --> F2["What types? (grams or kg? seconds or minutes?)"]
+    D --> F3["Composite PK or auto-increment?"]
+    D --> F4["Upsert on conflict? Replace? Error?"]
+    D --> F5["If upsert, COALESCE or overwrite?"]
+    D --> F6["One table or multiple tables?"]
+    D --> F7["TimescaleDB hypertable? Regular table?"]
+    D --> F8["Encrypt sensitive fields? Which ones?"]
+    D --> F9["...every decision multiplies the possibility space"]
 ```
 
 Without a spec, the AI makes roughly plausible guesses. Each guess has maybe
@@ -258,16 +257,14 @@ category of "AI generated outdated code" problems.
 
 ### The ASCII Architecture Diagram
 
-```
-Browser (htmx + Chart.js + vanilla JS)
-  ↓ HTTP :3000
-Axum 0.8 Router → middleware/
-  ↓
-handlers/{auth,calendar,chat,dashboard,files,...}
-  ↓
-┌─────────┬──────────┬──────────┬──────────┐
-│garmin.rs│ llm/     │ vault.rs │ repo.rs  │
-└─────────┴──────────┴──────────┴──────────┘
+```mermaid
+graph TD
+    BR["Browser<br/>(htmx + Chart.js + vanilla JS)"] -->|"HTTP :3000"| AX["Axum 0.8 Router → middleware/"]
+    AX --> H["handlers/<br/>{auth, calendar, chat, dashboard, files, ...}"]
+    H --> G[garmin.rs]
+    H --> L[llm/]
+    H --> V[vault.rs]
+    H --> R[repo.rs]
 ```
 
 This gives the AI a **spatial understanding** of the codebase. When asked to
@@ -442,11 +439,11 @@ inconsistencies in later steps as it loses context from earlier ones).
 
 Building in the right order prevents cascading errors:
 
-```
-Step 1: Scaffold     → No dependencies → can't go wrong
-Step 2: Domain       → Models are independent → self-contained
-Step 3: LLM          → Depends on domain (AnalystIntent) → domain must exist
-Step 4: Handlers     → Depends on everything → must be last
+```mermaid
+graph TD
+    S1["Step 1: Scaffold<br/>No dependencies → can't go wrong"] --> S2["Step 2: Domain<br/>Models are independent → self-contained"]
+    S2 --> S3["Step 3: LLM<br/>Depends on domain (AnalystIntent) → domain must exist"]
+    S3 --> S4["Step 4: Handlers<br/>Depends on everything → must be last"]
 ```
 
 If you build handlers first, you don't have the domain types they extract.
@@ -567,23 +564,12 @@ matches the protocol exactly or it fails entirely.
 
 The most productive approach combines both methods:
 
-```
-Phase 1: SDD — Write the spec
-    "I know WHAT I want. Let me document it precisely."
-
-Phase 2: SDD — Implement core architecture
-    "Build the skeleton: domain, repository, LLM adapter."
-
-Phase 3: Vibe Coding — Explore the edges
-    "What should the dashboard look like?"
-    "How should the chat persona feel?"
-    "Try different Chart.js visualizations."
-
-Phase 4: SDD — Codify the decisions
-    Update the spec with what you learned from Phase 3.
-
-Phase 5: SDD — Implement the final version
-    Build the production UI/UX based on the updated spec.
+```mermaid
+graph TD
+    P1["Phase 1: SDD — Write the spec<br/>'I know WHAT I want. Let me document it precisely.'"] --> P2["Phase 2: SDD — Implement core architecture<br/>'Build the skeleton: domain, repository, LLM adapter.'"]
+    P2 --> P3["Phase 3: Vibe Coding — Explore the edges<br/>'What should the dashboard look like?'<br/>'How should the chat persona feel?'<br/>'Try different Chart.js visualizations.'"]
+    P3 --> P4["Phase 4: SDD — Codify the decisions<br/>Update the spec with what you learned from Phase 3."]
+    P4 --> P5["Phase 5: SDD — Implement the final version<br/>Build the production UI/UX based on the updated spec."]
 ```
 
 ### The Vibe → Spec → Build Cycle
@@ -701,10 +687,10 @@ details are explored via vibe coding.
 
 ### Why This Workflow Works
 
-```
-Gemini (web)   → Good at: long conversations, brainstorming, spec writing
-VS Code Copilot → Good at: code generation, file editing, test running
-spec.md        → The bridge: written in Gemini, consumed by Copilot
+```mermaid
+graph LR
+    G["Gemini (web)<br/>Good at: long conversations,<br/>brainstorming, spec writing"] --> S["spec.md<br/>The bridge"]
+    S --> V["VS Code Copilot<br/>Good at: code generation,<br/>file editing, test running"]
 ```
 
 Gemini's web interface excels at the kind of iterative, conversational

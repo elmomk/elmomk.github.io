@@ -2,49 +2,48 @@
 
 ## Data Flow
 
-```
-                    ┌─────────────┐
-                    │ Claude Code  │
-                    └──────┬──────┘
-                           │
-           ┌───────────────┼───────────────┐
-           ▼               ▼               ▼
-     PreToolUse      Notification        Stop
-           │               │               │
-           ▼               ▼               ▼
-       active.sh      notify.sh       stopped.sh
-           │               │               │
-           ▼               ▼               ▼
-     fg = green       fg = red        fg = dark
-     @claude-active   @claude-attention @claude-stopped
-           │               │               │
-           └───────────────┼───────────────┘
-                           │
-                    User switches to          User presses
-                    the window (hook)         popup key
-                           │                      │
-                           ▼                      ▼
-                       clear.sh              popup.sh
-                           │                      │
-                           ▼                      ▼
-                  Unset format override    fzf dashboard
-                  Unset all markers        switch-client
+```mermaid
+graph TD
+    CC["Claude Code"] --> PreToolUse
+    CC --> Notification
+    CC --> Stop
+
+    PreToolUse --> active["active.sh"]
+    Notification --> notify["notify.sh"]
+    Stop --> stopped["stopped.sh"]
+
+    active --> ActiveState["fg = green<br/>@claude-active"]
+    notify --> AttentionState["fg = red<br/>@claude-attention"]
+    stopped --> StoppedState["fg = dark<br/>@claude-stopped"]
+
+    ActiveState --> UserSwitch["User switches to<br/>the window (hook)"]
+    AttentionState --> UserSwitch
+    StoppedState --> UserSwitch
+    UserSwitch --> clear["clear.sh"]
+    clear --> ClearResult["Unset format override<br/>Unset all markers"]
+
+    ActiveState --> UserPress["User presses<br/>popup key"]
+    AttentionState --> UserPress
+    StoppedState --> UserPress
+    UserPress --> popup["popup.sh"]
+    popup --> PopupResult["fzf dashboard<br/>switch-client"]
 ```
 
 ## State Machine
 
-```
-              active.sh                notify.sh
-    ┌─────────────────────────┐  ┌──────────────────┐
-    │                         ▼  │                   ▼
-  NORMAL ─── active.sh ─── ACTIVE ── notify.sh ── ATTENTION
-    ▲                         │                      │  │
-    │         stopped.sh      │       active.sh      │  │
-    │    ┌────────────────────┘      (user replied)  │  │
-    │    ▼                              ┌────────────┘  │
-  STOPPED ◄──── stopped.sh ────────────┘                │
-    ▲                                                   │
-    └──────────── clear.sh (from any state) ────────────┘
+```mermaid
+graph LR
+    NORMAL -->|active.sh| ACTIVE
+    ACTIVE -->|active.sh| ACTIVE
+    ACTIVE -->|notify.sh| ATTENTION
+    ATTENTION -->|notify.sh| ATTENTION
+    ACTIVE -->|stopped.sh| STOPPED
+    ATTENTION -->|stopped.sh| STOPPED
+    ATTENTION -->|"active.sh<br/>(user replied)"| ACTIVE
+    STOPPED -->|active.sh| ACTIVE
+    ATTENTION -->|"clear.sh<br/>(from any state)"| NORMAL
+    ACTIVE -->|"clear.sh<br/>(from any state)"| NORMAL
+    STOPPED -->|"clear.sh<br/>(from any state)"| NORMAL
 ```
 
 Priority: **ATTENTION > ACTIVE > STOPPED > NORMAL**

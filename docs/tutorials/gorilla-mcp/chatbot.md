@@ -4,10 +4,12 @@ The gorilla_chatbot crate provides a web-based chat interface and an LLM gateway
 
 ## Overview
 
-```
-Browser <--SSE--> gorilla_chatbot <--stdio--> Claude CLI <--MCP--> gorilla_mcp
-                        |
-gorilla_coach <--SSE--> POST /api/gateway (no MCP, data in prompt)
+```mermaid
+graph LR
+    A[Browser] <-->|SSE| B[gorilla_chatbot]
+    B <-->|stdio| C[Claude CLI]
+    C <-->|MCP| D[gorilla_mcp]
+    E[gorilla_coach] <-->|"SSE<br/>POST /api/gateway<br/>(no MCP, data in prompt)"| B
 ```
 
 ## Routes
@@ -147,13 +149,13 @@ Single HTML file (`static/index.html`, ~850 lines) with embedded CSS and JavaScr
 
 ### Message Flow
 
-```
-User types message
-    → POST /api/chat { message: "..." }
-    → SSE stream opens
-    → status events update thinking indicator
-    → result event renders final message with Markdown
-    → metadata shown (turns, duration, cost)
+```mermaid
+graph TD
+    A["User types message"] --> B["POST /api/chat { message: '...' }"]
+    B --> C["SSE stream opens"]
+    C --> D["status events update thinking indicator"]
+    D --> E["result event renders final message with Markdown"]
+    E --> F["metadata shown (turns, duration, cost)"]
 ```
 
 ## Building and Running

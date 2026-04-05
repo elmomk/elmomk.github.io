@@ -53,22 +53,23 @@ We reference several foundational texts throughout:
 
 At **100 users**, your system looks like this:
 
-```
-[100 browsers] → [1 Axum process] → [1 PostgreSQL instance]
-                       ↕                      ↕
-               [local uploads/]        [20 connections]
-               [in-memory state]       [~36,500 garmin rows/yr]
+```mermaid
+graph LR
+    B["100 browsers"] --> A["1 Axum process"]
+    A --> PG["1 PostgreSQL instance"]
+    A --- L["local uploads/<br/>in-memory state"]
+    PG --- C["20 connections<br/>~36,500 garmin rows/yr"]
 ```
 
 At **1,000,000 users**, it needs to look like this:
 
-```
-[1M browsers] → [CDN/LB] → [N Axum instances] → [PgBouncer cluster]
-                                    ↕                     ↕
-                            [Redis cluster]      [PG primary + N replicas]
-                            [S3/MinIO]           [partitioned tables]
-                            [Job queue]          [365M garmin rows/yr]
-                            [Prometheus]
+```mermaid
+graph LR
+    B["1M browsers"] --> CDN["CDN/LB"]
+    CDN --> AXUM["N Axum instances"]
+    AXUM --> PGB["PgBouncer cluster"]
+    AXUM --- R["Redis cluster<br/>S3/MinIO<br/>Job queue<br/>Prometheus"]
+    PGB --> PG["PG primary + N replicas<br/>partitioned tables<br/>365M garmin rows/yr"]
 ```
 
 The fundamental shift is from **vertical** (one bigger machine) to **horizontal**
@@ -116,10 +117,12 @@ is a **connection pooler** that sits between your app and PostgreSQL.
 PgBouncer maintains a small number of actual PostgreSQL connections and
 multiplexes hundreds of application connections onto them:
 
-```
-[Axum instance 1: 100 conns] ──┐
-[Axum instance 2: 100 conns] ──┤── [PgBouncer: 50 real PG conns] ── [PostgreSQL]
-[Axum instance N: 100 conns] ──┘
+```mermaid
+graph LR
+    A1["Axum instance 1<br/>100 conns"] --> PGB["PgBouncer<br/>50 real PG conns"]
+    A2["Axum instance 2<br/>100 conns"] --> PGB
+    AN["Axum instance N<br/>100 conns"] --> PGB
+    PGB --> PG[PostgreSQL]
 ```
 
 Configuration (`pgbouncer.ini`):
@@ -455,9 +458,10 @@ chat messages.
 PostgreSQL streaming replication creates one or more read-only replicas that stay
 in sync with the primary:
 
-```
-[Primary] ──WAL stream──→ [Replica 1]
-                      └──→ [Replica 2]
+```mermaid
+graph LR
+    P[Primary] -->|"WAL stream"| R1[Replica 1]
+    P -->|"WAL stream"| R2[Replica 2]
 ```
 
 Modify `Repository` to use two pools:
@@ -595,11 +599,12 @@ runs in the web process.
 
 At true scale, sync should be a **separate service** consuming jobs from a queue:
 
-```
-[Scheduler (cron)] → [Redis / PG job queue] → [N Sync Workers]
-                                                     ↓
-                                              [Garmin API]
-                                              [PostgreSQL]
+```mermaid
+graph LR
+    S["Scheduler (cron)"] --> Q["Redis / PG job queue"]
+    Q --> W["N Sync Workers"]
+    W --> G[Garmin API]
+    W --> PG[PostgreSQL]
 ```
 
 Options for the job queue:
@@ -992,8 +997,10 @@ filesystems (ext4, XFS) handle this, but:
 
 Object storage is designed for this:
 
-```
-[Axum instance N] → [S3-compatible API] → [Object storage cluster]
+```mermaid
+graph LR
+    A["Axum instance N"] --> S3["S3-compatible API"]
+    S3 --> OBJ["Object storage cluster"]
 ```
 
 Key scheme: `s3://gorilla-uploads/{user_id}/{filename}`

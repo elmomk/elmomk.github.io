@@ -388,12 +388,14 @@ Warning signs that Gorilla Coach could drift toward a Big Ball of Mud:
 
 Currently, the dependency graph is mostly acyclic:
 
-```
-main.rs → handlers/ → repository.rs → domain.rs
-               ↓           ↓
-           llm/         vault.rs
-               ↓
-          garmin.rs
+```mermaid
+graph TD
+    A[main.rs] --> B[handlers/]
+    B --> C[repository.rs]
+    C --> D[domain.rs]
+    B --> E[llm/]
+    C --> F[vault.rs]
+    E --> G[garmin.rs]
 ```
 
 But `handlers/settings.rs` directly calls `garmin::garmin_login()`, and
@@ -479,35 +481,14 @@ the boundaries?
 Based on the current module structure and the domain boundaries visible in the
 code:
 
-```
-┌──────────────────┐     ┌──────────────────┐     ┌──────────────────┐
-│ Auth Service      │     │ Biometric Service │    │ Chat Service      │
-│ ──────────────── │     │ ──────────────── │     │ ──────────────── │
-│ handlers/auth.rs  │     │ garmin.rs         │    │ handlers/chat.rs  │
-│ Google OAuth      │     │ handlers/sync.rs  │    │ llm/              │
-│                   │     │ handlers/dash.rs  │    │ SSE streaming     │
-│ DB: users         │     │                   │    │                   │
-│     user_settings │     │ DB: garmin_daily   │   │ DB: chat_messages │
-│     (credentials) │     │     manual_metrics │   │                   │
-└──────────────────┘     └──────────────────┘     └──────────────────┘
-          ↑                        ↑                        ↑
-          │                        │                        │
-          └────────────┬───────────┴────────────────────────┘
-                       │
-               ┌───────┴──────┐
-               │ API Gateway   │
-               │ (nginx/envoy) │
-               └───────────────┘
-
-┌──────────────────┐     ┌──────────────────┐     ┌──────────────────┐
-│ Training Service  │    │ File Service      │     │ Analytics Service │
-│ ──────────────── │    │ ──────────────── │     │ ──────────────── │
-│ handlers/train.rs │    │ handlers/files.rs │    │ llm/analyst.rs    │
-│ CSV parsing       │    │ handlers/sheets.rs│    │ SQL metric engine │
-│                   │    │                   │     │                   │
-│ DB: training_logs │    │ Storage: S3/MinIO │    │ DB: read-only     │
-│                   │    │ DB: sheet metadata│     │     biometric view│
-└──────────────────┘    └──────────────────┘     └──────────────────┘
+```mermaid
+graph TD
+    GW["API Gateway<br/>(nginx/envoy)"] --> AUTH["Auth Service<br/>handlers/auth.rs<br/>Google OAuth<br/>DB: users, user_settings (credentials)"]
+    GW --> BIO["Biometric Service<br/>garmin.rs, handlers/sync.rs<br/>handlers/dash.rs<br/>DB: garmin_daily, manual_metrics"]
+    GW --> CHAT["Chat Service<br/>handlers/chat.rs<br/>llm/, SSE streaming<br/>DB: chat_messages"]
+    GW --> TRAIN["Training Service<br/>handlers/train.rs<br/>CSV parsing<br/>DB: training_logs"]
+    GW --> FILES["File Service<br/>handlers/files.rs<br/>handlers/sheets.rs<br/>Storage: S3/MinIO, DB: sheet metadata"]
+    GW --> ANALYTICS["Analytics Service<br/>llm/analyst.rs<br/>SQL metric engine<br/>DB: read-only biometric view"]
 ```
 
 ### What Would Change: The Settings Flow
@@ -532,12 +513,14 @@ pub async fn update_settings(
 
 In a microservices world, this becomes:
 
-```
-Browser → API Gateway → Auth Service: validate session cookie
-                       → Auth Service: store encrypted credentials
-                       → Auth Service → Biometric Service: validate Garmin login
-                       → Auth Service → Metrics Service: update garmin_auth_valid
-                       → Auth Service: return response
+```mermaid
+graph LR
+    A[Browser] --> B[API Gateway]
+    B --> C["Auth Service:<br/>validate session cookie"]
+    C --> D["Auth Service:<br/>store encrypted credentials"]
+    D --> E["Biometric Service:<br/>validate Garmin login"]
+    D --> F["Metrics Service:<br/>update garmin_auth_valid"]
+    F --> G["Auth Service:<br/>return response"]
 ```
 
 That's **four network hops** for what's currently an in-process function call.
@@ -571,12 +554,13 @@ let response = state.llm.generate_with_tools(prompt, system, &tools, &executor).
 
 In a microservices world, each tool call crosses a network boundary:
 
-```
-Chat Service → Biometric Service: get_biometric_history(start, end)
-Chat Service → File Service: list_files(user_id)
-Chat Service → File Service: read_file(user_id, filename)
-Chat Service → Training Service: get_training_plan(user_id, file)
-Chat Service → Analytics Service: analyze_metric(user_id, metric, range)
+```mermaid
+graph LR
+    CS[Chat Service] -->|"get_biometric_history(start, end)"| BIO[Biometric Service]
+    CS -->|"list_files(user_id)"| FS[File Service]
+    CS -->|"read_file(user_id, filename)"| FS
+    CS -->|"get_training_plan(user_id, file)"| TS[Training Service]
+    CS -->|"analyze_metric(user_id, metric, range)"| AS[Analytics Service]
 ```
 
 With up to 8 tool-calling turns and 5 tools, that's potentially **40 network
@@ -609,12 +593,12 @@ If the second call fails, the first has already committed. In a monolith with
 one database, you'd wrap these in a transaction. In microservices with separate
 databases, you need a saga:
 
-```
-1. Auth Service: save credentials → emit CredentialsSaved event
-2. Biometric Service: receives event → validate Garmin login
-   Success → emit GarminValidated
-   Failure → emit GarminValidationFailed
-3. Auth Service: receives GarminValidationFailed → compensate: delete credentials
+```mermaid
+graph TD
+    A["1. Auth Service:<br/>save credentials"] -->|"emit CredentialsSaved"| B["2. Biometric Service:<br/>validate Garmin login"]
+    B -->|"Success"| C["emit GarminValidated"]
+    B -->|"Failure"| D["emit GarminValidationFailed"]
+    D --> E["3. Auth Service:<br/>compensate: delete credentials"]
 ```
 
 This is the **Saga pattern** from Chris Richardson's *Microservices Patterns*.
@@ -967,24 +951,14 @@ Gorilla Coach has these natural bounded contexts:
 
 The relationships between Gorilla Coach's contexts:
 
-```
-                ┌─────────────┐
-                │  Identity   │
-                │  (upstream) │
-                └──────┬──────┘
-                       │ user_id flows downstream
-          ┌────────────┼───────────────┐
-          ↓            ↓               ↓
-    ┌──────────┐ ┌──────────┐ ┌──────────────┐
-    │Biometric │ │ Training │ │ Intelligence │
-    │          │ │          │ │   (chat+AI)  │
-    └────┬─────┘ └────┬─────┘ └──────┬───────┘
-         │            │              │
-         └────────────┼──────────────┘
-                      ↓
-              Intelligence consumes
-              data from Biometric,
-              Training, and Files
+```mermaid
+graph TD
+    ID["Identity<br/>(upstream)"] -->|"user_id flows downstream"| BIO[Biometric]
+    ID -->|"user_id flows downstream"| TR[Training]
+    ID -->|"user_id flows downstream"| INT["Intelligence<br/>(chat+AI)"]
+    BIO -->|"data consumed by"| INT
+    TR -->|"data consumed by"| INT
+    FILES[Files] -->|"data consumed by"| INT
 ```
 
 **Identity** is the upstream context — it provides `user_id` to every other
@@ -1057,24 +1031,13 @@ biometric context (`garmin_daily_data`) and the intelligence context
 
 Even with one database, you can enforce ownership:
 
-```
-┌─────────────────────────────────────────────────────┐
-│                   PostgreSQL                         │
-│                                                     │
-│  ┌────────────┐  ┌─────────────┐  ┌──────────────┐ │
-│  │ auth schema │  │ bio schema   │  │ chat schema  │ │
-│  │ ────────── │  │ ──────────── │  │ ──────────── │ │
-│  │ users      │  │ garmin_daily │  │ chat_messages│ │
-│  │ user_creds │  │ manual_body  │  │              │ │
-│  └────────────┘  └─────────────┘  └──────────────┘ │
-│                                                     │
-│  ┌────────────────┐  ┌────────────────┐            │
-│  │ training schema │  │ analytics views│            │
-│  │ ────────────── │  │ ────────────── │            │
-│  │ training_logs  │  │ bio_summary_v  │            │
-│  └────────────────┘  │ (read-only)    │            │
-│                      └────────────────┘            │
-└─────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    PG["PostgreSQL"] --- AUTH["auth schema<br/>users, user_creds"]
+    PG --- BIO["bio schema<br/>garmin_daily, manual_body"]
+    PG --- CHAT["chat schema<br/>chat_messages"]
+    PG --- TRAIN["training schema<br/>training_logs"]
+    PG --- ANALYTICS["analytics views<br/>bio_summary_v<br/>(read-only)"]
 ```
 
 PostgreSQL schemas enforce this at the database level. Each module's connection
@@ -1171,24 +1134,15 @@ The dependency graph reveals a hub-and-spoke pattern centered on `AppState`,
 `domain`, and `repository`. Almost every module depends on these three, creating a
 de facto coupling layer.
 
-```
-         ┌─────────┐
-     ┌───│ domain  │───┐
-     │   └─────────┘   │
-     ↓        ↑        ↓
-┌─────────┐   │   ┌──────────┐
-│handlers │───┼───│repository│
-└────┬────┘   │   └──────────┘
-     │        │        ↑
-     ↓        │        │
-┌─────────┐   │   ┌────────┐
-│  garmin │   └───│  llm   │
-└─────────┘       └────────┘
-     ↑                ↑
-     │                │
-     └────────────────┘
-      (indirect through
-       handlers/sync)
+```mermaid
+graph TD
+    D[domain] --> H[handlers]
+    D --> R[repository]
+    H --> R
+    H --> G[garmin]
+    D --> L[llm]
+    L --> R
+    G -.->|"indirect through<br/>handlers/sync"| L
 ```
 
 > **CA**, Chapter 14 (Component Coupling): *"When you have a cluster of
@@ -1200,24 +1154,16 @@ de facto coupling layer.
 The Acyclic Dependencies Principle (ADP) states that the dependency graph should
 be a **directed acyclic graph (DAG)** — no cycles.
 
-```
-                ┌────────┐
-                │ shared │  (config, error, crypto)
-                └───┬────┘
-          ┌─────────┼──────────┬──────────┐
-          ↓         ↓          ↓          ↓
-     ┌────────┐ ┌────────┐ ┌────────┐ ┌──────┐
-     │  auth  │ │  bio   │ │training│ │files │
-     └────┬───┘ └───┬────┘ └───┬────┘ └──┬───┘
-          │         │          │          │
-          └─────────┼──────────┼──────────┘
-                    ↓          ↓
-              ┌──────────────────┐
-              │  intelligence    │  (chat + analytics)
-              │  (depends on     │
-              │   bio, training, │
-              │   files APIs)    │
-              └──────────────────┘
+```mermaid
+graph TD
+    S["shared<br/>(config, error, crypto)"] --> AUTH[auth]
+    S --> BIO[bio]
+    S --> TRAIN[training]
+    S --> FILES[files]
+    AUTH --> INT["intelligence<br/>(chat + analytics)<br/>depends on bio, training, files APIs"]
+    BIO --> INT
+    TRAIN --> INT
+    FILES --> INT
 ```
 
 Dependencies flow strictly downward. `auth` never calls `intelligence`.
@@ -1347,16 +1293,14 @@ tests that spin up the full Axum app and hit it with HTTP requests.
 > service boundaries remain compatible without requiring both services to be
 > running."*
 
-```
-                   ┌─────────────┐
-                   │   E2E Tests │  ← slowest, most brittle
-                  ┌┴─────────────┴┐
-                  │ Contract Tests │ ← verify API compatibility
-                 ┌┴───────────────┴┐
-                 │ Integration Tests│ ← test with real DB, mocked services
-                ┌┴─────────────────┴┐
-                │    Unit Tests      │ ← fastest, most isolated
-                └────────────────────┘
+```mermaid
+graph TD
+    E2E["E2E Tests<br/>(slowest, most brittle)"] --- CT["Contract Tests<br/>(verify API compatibility)"]
+    CT --- IT["Integration Tests<br/>(test with real DB, mocked services)"]
+    IT --- UT["Unit Tests<br/>(fastest, most isolated)"]
+
+    style E2E fill:#f9f,stroke:#333
+    style UT fill:#9f9,stroke:#333
 ```
 
 For Gorilla Coach's 6 services, you'd need:
@@ -1376,16 +1320,14 @@ This is an order of magnitude more testing infrastructure than the monolith.
 
 The modular monolith gets the best of both:
 
-```
-                   ┌─────────────┐
-                   │   E2E Tests │ ← test full HTTP stack
-                  ┌┴─────────────┴┐
-                  │ Module Integ.  │ ← test module interactions via public APIs
-                 ┌┴───────────────┴┐
-                 │  Module Unit     │ ← test each module in isolation
-                ┌┴─────────────────┴┐
-                │    Function Unit   │ ← test individual functions
-                └────────────────────┘
+```mermaid
+graph TD
+    E2E["E2E Tests<br/>(test full HTTP stack)"] --- MI["Module Integration<br/>(test module interactions via public APIs)"]
+    MI --- MU["Module Unit<br/>(test each module in isolation)"]
+    MU --- FU["Function Unit<br/>(test individual functions)"]
+
+    style E2E fill:#f9f,stroke:#333
+    style FU fill:#9f9,stroke:#333
 ```
 
 No contract tests needed (it's all in-process). Module integration tests verify
@@ -1438,10 +1380,10 @@ mesh VPN (tailnet). `tailscale serve` proxies HTTPS traffic to `localhost:3000`
 with automatic Let's Encrypt TLS certificates — no reverse proxy or manual cert
 management needed. Only devices on the tailnet can reach the server.
 
-```
-Phone / Laptop (any network)
-  ↓ WireGuard tunnel (Tailscale)
-https://<machine>.ts.net → tailscale serve → localhost:3000 (Axum)
+```mermaid
+graph LR
+    A["Phone / Laptop<br/>(any network)"] -->|"WireGuard tunnel<br/>(Tailscale)"| B["https://&lt;machine&gt;.ts.net"]
+    B -->|"tailscale serve"| C["localhost:3000<br/>(Axum)"]
 ```
 
 **Artifacts**: 1 binary (~20 MB), 1 Docker image
@@ -1518,8 +1460,9 @@ modular monolith provides a clean extraction path.
 
 ### Phase 1: Current State (Monolith)
 
-```
-[One Binary] → [One Database]
+```mermaid
+graph LR
+    A["One Binary"] --> B["One Database"]
 ```
 
 Works for: 1 developer, < 10K users, evolving domain.
@@ -1529,16 +1472,26 @@ Works for: 1 developer, < 10K users, evolving domain.
 Refactor the codebase into modules with explicit boundaries. Still one binary,
 still one database, but with logical separation:
 
-```
-[One Binary]
-  ├── auth module      ──→  users, user_settings tables
-  ├── biometric module ──→  garmin_daily_data tables
-  ├── chat module      ──→  chat_messages table
-  ├── training module  ──→  training_set_logs table
-  ├── files module     ──→  filesystem / S3
-  └── analytics module ──→  read-only views
+```mermaid
+graph LR
+    BIN["One Binary"] --> AUTH["auth module"]
+    BIN --> BIO["biometric module"]
+    BIN --> CHAT["chat module"]
+    BIN --> TRAIN["training module"]
+    BIN --> FILES["files module"]
+    BIN --> ANALYTICS["analytics module"]
 
-→ [One Database with schema-level ownership]
+    AUTH -->|"owns"| UT["users, user_settings tables"]
+    BIO -->|"owns"| GT["garmin_daily_data tables"]
+    CHAT -->|"owns"| CT["chat_messages table"]
+    TRAIN -->|"owns"| TT["training_set_logs table"]
+    FILES -->|"owns"| FS["filesystem / S3"]
+    ANALYTICS -->|"owns"| RV["read-only views"]
+
+    UT --- DB["One Database with<br/>schema-level ownership"]
+    GT --- DB
+    CT --- DB
+    TT --- DB
 ```
 
 **Effort**: Days to weeks. No infrastructure change. Just code reorganization.
@@ -1551,17 +1504,18 @@ When a specific module reaches a scale or velocity that justifies extraction,
 pull it out. The most likely candidate for Gorilla Coach is the **biometric
 sync worker**:
 
-```
-[Web Binary]                    [Sync Worker Binary]
-  ├── auth module               ├── biometric module
-  ├── chat module                   (garmin.rs, sync logic)
-  ├── training module           └── writes to garmin_daily_data
-  ├── files module
-  └── analytics module
-      (reads garmin_daily_data)
+```mermaid
+graph TD
+    WEB["Web Binary"] --- WA[auth module]
+    WEB --- WC[chat module]
+    WEB --- WT[training module]
+    WEB --- WF[files module]
+    WEB --- WAN["analytics module<br/>(reads garmin_daily_data)"]
 
-         ↕                              ↕
-    [Shared Database]  ←──────→  [Shared Database]
+    SYNC["Sync Worker Binary"] --- SB["biometric module<br/>(garmin.rs, sync logic)<br/>writes to garmin_daily_data"]
+
+    WEB <-->|"read/write"| DB["Shared Database"]
+    SYNC <-->|"read/write"| DB
 ```
 
 This isn't even a microservice yet — it's just a second binary reading/writing
@@ -1580,11 +1534,13 @@ the same database. But the sync worker can now:
 Only if needed — years down the line, with a team of developers and hundreds of
 thousands of users:
 
-```
-[Auth Service] ──→ [Auth DB]
-[Bio Service]  ──→ [Bio DB]   ← separate database
-[Chat Service] ──→ [Chat DB]
-   ↕ events via message broker ↕
+```mermaid
+graph LR
+    AS[Auth Service] --> ADB[Auth DB]
+    BS[Bio Service] --> BDB["Bio DB<br/>(separate database)"]
+    CS[Chat Service] --> CDB[Chat DB]
+    AS <-->|"events via<br/>message broker"| BS
+    BS <-->|"events via<br/>message broker"| CS
 ```
 
 By this point, the module boundaries defined in Phase 2 have been battle-tested

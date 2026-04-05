@@ -4,30 +4,20 @@
 
 Gorilla MCP is a Rust workspace with two crates that bridge Claude AI to strength training and biometric data:
 
-```
-Claude Code / Claude AI
-        |
-        | MCP Protocol (stdio or HTTP/SSE)
-        |
-  gorilla_mcp (MCP Server)
-        |
-        +--- CoachClient ----> gorilla_coach (/api/v2/*)
-        |                      Training plans, logs, reports,
-        |                      5/3/1 auto-regulator, files
-        |
-        +--- GarminClient ---> garmin_api (/api/v1/*)
-                               Daily biometrics, vitals,
-                               baselines, connection status
+```mermaid
+graph TD
+    A["Claude Code / Claude AI"] -->|"MCP Protocol<br/>(stdio or HTTP/SSE)"| B["gorilla_mcp<br/>(MCP Server)"]
+    B -->|CoachClient| C["gorilla_coach (/api/v2/*)<br/>Training plans, logs, reports,<br/>5/3/1 auto-regulator, files"]
+    B -->|GarminClient| D["garmin_api (/api/v1/*)<br/>Daily biometrics, vitals,<br/>baselines, connection status"]
 ```
 
 The chatbot adds a web layer:
 
-```
-Browser -----> gorilla_chatbot (Axum)
-                    |
-                    +-- Spawns Claude CLI --mcp-config --> gorilla_mcp
-                    |
-                    +-- POST /api/gateway (for gorilla_coach to call Claude)
+```mermaid
+graph LR
+    A[Browser] --> B["gorilla_chatbot (Axum)"]
+    B -->|"Spawns Claude CLI<br/>--mcp-config"| C[gorilla_mcp]
+    B -->|"POST /api/gateway"| D["gorilla_coach calls Claude"]
 ```
 
 ## MCP Server (`gorilla_mcp`)
@@ -190,28 +180,20 @@ Reports from gorilla_coach (sitrep, AAR, debrief) arrive as pre-formatted Markdo
 
 **MCP Mode** — serves the browser chat UI:
 
-```
-Browser --POST /api/chat--> Axum
-                             |
-                             +-- spawn Claude CLI
-                             |     --mcp-config (gorilla_mcp)
-                             |     --model sonnet
-                             |     --system-prompt "..."
-                             |
-                             +-- stream stdout as SSE events --> Browser
+```mermaid
+graph LR
+    A[Browser] -->|"POST /api/chat"| B[Axum]
+    B -->|spawn| C["Claude CLI<br/>--mcp-config (gorilla_mcp)<br/>--model sonnet<br/>--system-prompt '...'"]
+    B -->|"stream stdout as SSE events"| A
 ```
 
 **Gateway Mode** — serves gorilla_coach as an LLM backend:
 
-```
-gorilla_coach --POST /api/gateway--> Axum
-               X-API-Key: secret      |
-                                      +-- spawn Claude CLI
-                                      |     (no MCP tools)
-                                      |     --model from request
-                                      |     --system-prompt from request
-                                      |
-                                      +-- stream SSE events --> gorilla_coach
+```mermaid
+graph LR
+    A["gorilla_coach<br/>X-API-Key: secret"] -->|"POST /api/gateway"| B[Axum]
+    B -->|spawn| C["Claude CLI<br/>(no MCP tools)<br/>--model from request<br/>--system-prompt from request"]
+    B -->|"stream SSE events"| A
 ```
 
 Gateway mode is enabled when `GATEWAY_API_KEY` is set. Authentication uses constant-time comparison via the `subtle` crate.

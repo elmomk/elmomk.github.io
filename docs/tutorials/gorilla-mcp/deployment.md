@@ -11,19 +11,18 @@ Gorilla MCP deploys as Docker containers with Tailscale sidecar networking. Each
 
 ## Architecture
 
-```
-Tailnet
-├── gorilla-mcp (tailscale node)
-│   ├── tailscale sidecar    → HTTPS :443 → proxy to :3000
-│   └── gorilla_mcp app      → MCP SSE server on :3000
-│
-├── gorilla-chatbot (tailscale node)
-│   ├── tailscale sidecar    → HTTPS :443 → proxy to :8080
-│   │   (TS_USERSPACE=true for internet access)
-│   └── gorilla_chatbot app  → Web UI + gateway on :8080
-│
-├── gorilla-coach.your-tailnet.ts.net (existing)
-└── garmin-api.your-tailnet.ts.net (existing)
+```mermaid
+graph TD
+    T[Tailnet] --- MCP["gorilla-mcp<br/>(tailscale node)"]
+    T --- CB["gorilla-chatbot<br/>(tailscale node)"]
+    T --- GC["gorilla-coach.your-tailnet.ts.net<br/>(existing)"]
+    T --- GA["garmin-api.your-tailnet.ts.net<br/>(existing)"]
+
+    MCP --- MTS["tailscale sidecar<br/>HTTPS :443 → proxy to :3000"]
+    MCP --- MAPP["gorilla_mcp app<br/>MCP SSE server on :3000"]
+
+    CB --- CTS["tailscale sidecar<br/>HTTPS :443 → proxy to :8080<br/>(TS_USERSPACE=true for internet access)"]
+    CB --- CAPP["gorilla_chatbot app<br/>Web UI + gateway on :8080"]
 ```
 
 Each service uses Tailscale Serve to expose its port via HTTPS with automatic TLS certificates.

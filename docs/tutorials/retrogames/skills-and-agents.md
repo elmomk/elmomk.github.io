@@ -11,25 +11,13 @@ box, it can read files, edit code, run commands, and search your codebase. But
 every project has its own workflows — deploying, testing, building, reviewing.
 Claude Code provides three extension mechanisms to encode those workflows:
 
-```
-┌─────────────────────────────────────────────┐
-│                  You (the human)            │
-│                                             │
-│   "deploy the app"    "/check-rust"         │
-│         │                   │               │
-│         ▼                   ▼               │
-│   ┌───────────┐    ┌──────────────┐         │
-│   │   Agent   │    │    Skill     │         │
-│   │ (Claude   │    │ (slash cmd   │         │
-│   │  decides) │    │  you invoke) │         │
-│   └─────┬─────┘    └──────┬───────┘         │
-│         │                 │                 │
-│         ▼                 ▼                 │
-│   ┌──────────────────────────────┐          │
-│   │       Shell Scripts          │          │
-│   │   (the actual work)         │          │
-│   └──────────────────────────────┘          │
-└─────────────────────────────────────────────┘
+```mermaid
+graph TD
+    You["You (the human)"]
+    You -->|"deploy the app"| Agent["Agent<br/>(Claude decides)"]
+    You -->|"/check-rust"| Skill["Skill<br/>(slash cmd you invoke)"]
+    Agent --> Scripts["Shell Scripts<br/>(the actual work)"]
+    Skill --> Scripts
 ```
 
 **Skills** = slash commands you invoke explicitly (`/deploy`, `/check-rust`)
@@ -488,14 +476,11 @@ Agents don't read prompts linearly like humans. Use:
 
 ### Pattern: Skill → Agent escalation
 
-```
-/check-rust
-    │
-    ├── All pass → Report "all clean"
-    │
-    └── Some fail → Delegate to rust-fixer agent
-                         │
-                         └── Fix → Re-check → Report
+```mermaid
+graph TD
+    CR["/check-rust"] -->|All pass| Report["Report 'all clean'"]
+    CR -->|Some fail| Delegate["Delegate to rust-fixer agent"]
+    Delegate --> Fix["Fix → Re-check → Report"]
 ```
 
 The skill handles the happy path. The agent handles the unhappy path. This

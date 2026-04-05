@@ -47,11 +47,14 @@ The academic literature distinguishes three levels of LLM autonomy:
 
 Gorilla Coach operates at level 3. The key difference is the **action loop**:
 
-```
-User Message → LLM → [Decision: Text Response OR Tool Call]
-                         ↓ (if Tool Call)
-                    Execute Tool → Get Result → Feed Result Back to LLM → [Decision again]
-                         ↑_______________________________________________|
+```mermaid
+graph LR
+    A[User Message] --> B[LLM]
+    B -->|"Text Response"| C[Done]
+    B -->|"Tool Call"| D[Execute Tool]
+    D --> E[Get Result]
+    E --> F[Feed Result Back to LLM]
+    F --> B
 ```
 
 In Gorilla Coach, the agent is a fitness coach that:
@@ -67,37 +70,17 @@ This is fundamentally different from a simple API orchestration layer. An orches
 
 #### Architecture Overview
 
-```
-┌──────────────────────────────────────────────────┐
-│                   Chat Handler                    │
-│  1. Parse user message                           │
-│  2. Load bio context (last 3 days)               │
-│  3. Build system prompt with routing rules        │
-│  4. Call LLM with tools                          │
-└──────────┬───────────────────────────────────────┘
-           ↓
-┌──────────────────────────────────────────────────┐
-│            LlmAdapter::generate_with_tools        │
-│                                                   │
-│  ┌──────────────────────────────────────────┐    │
-│  │  Round 1: User prompt → LLM              │    │
-│  │  LLM response: functionCall(analyze_metric)│   │
-│  │                                           │    │
-│  │  Execute: ChatToolExecutor.execute()      │    │
-│  │    → detect_intent() [Ollama classifier]  │    │
-│  │    → get_metric_stats() [SQL query]       │    │
-│  │                                           │    │
-│  │  Round 2: Tool result → LLM              │    │
-│  │  LLM response: functionCall(get_last...)  │    │
-│  │                                           │    │
-│  │  Execute: ChatToolExecutor.execute()      │    │
-│  │    → query Garmin data                    │    │
-│  │    → cross-reference CSV training plan    │    │
-│  │                                           │    │
-│  │  Round 3: Tool results → LLM             │    │
-│  │  LLM response: text (final answer)       │    │
-│  └──────────────────────────────────────────┘    │
-└──────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    CH["Chat Handler<br/>1. Parse user message<br/>2. Load bio context (last 3 days)<br/>3. Build system prompt with routing rules<br/>4. Call LLM with tools"] --> LA["LlmAdapter::generate_with_tools"]
+
+    LA --> R1["Round 1: User prompt → LLM<br/>LLM response: functionCall(analyze_metric)"]
+    R1 --> E1["Execute: ChatToolExecutor.execute()<br/>→ detect_intent() [Ollama classifier]<br/>→ get_metric_stats() [SQL query]"]
+
+    E1 --> R2["Round 2: Tool result → LLM<br/>LLM response: functionCall(get_last...)"]
+    R2 --> E2["Execute: ChatToolExecutor.execute()<br/>→ query Garmin data<br/>→ cross-reference CSV training plan"]
+
+    E2 --> R3["Round 3: Tool results → LLM<br/>LLM response: text (final answer)"]
 ```
 
 Each round is a full HTTP request to the LLM provider. The agent loop continues until the LLM returns a text response (no more tool calls) or hits the maximum round limit.
@@ -1359,21 +1342,13 @@ The compile-time `&'static str` return type of `metric_column()` means the new m
 
 #### The Full Architecture
 
-```
-┌──────────────┐     ┌────────────┐     ┌───────────────┐
-│  LLM Task    │────→│  mpsc tx   │────→│  mpsc rx      │
-│  (generate_  │     │            │     │  (forwarder)  │
-│  with_tools) │     └────────────┘     └───────┬───────┘
-└──────────────┘                                │
-                                        ┌───────▼────────┐
-                                        │  broadcast tx  │
-                                        └───────┬────────┘
-                                    ┌───────────┼───────────┐
-                                    ▼                       ▼
-                            ┌───────────────┐    ┌─────────────────┐
-                            │  SSE Stream   │    │  Saver Task     │
-                            │  (→ browser)  │    │  (→ database)   │
-                            └───────────────┘    └─────────────────┘
+```mermaid
+graph LR
+    LLM["LLM Task<br/>(generate_with_tools)"] --> MPSC_TX["mpsc tx"]
+    MPSC_TX --> MPSC_RX["mpsc rx<br/>(forwarder)"]
+    MPSC_RX --> BROADCAST["broadcast tx"]
+    BROADCAST --> SSE["SSE Stream<br/>(→ browser)"]
+    BROADCAST --> SAVER["Saver Task<br/>(→ database)"]
 ```
 
 **Why mpsc → broadcast (not just broadcast)?**

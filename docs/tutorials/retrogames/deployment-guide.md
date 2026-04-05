@@ -131,26 +131,12 @@ volumes:
 
 ### How It Fits Together
 
-```
-Internet               Tailscale Network
-   X                        |
-   |                   +----v----+
-(blocked)              | Tailscale|
-                       | Container|
-                       | :443 HTTPS
-                       +----+----+
-                            |
-                       (shared network namespace)
-                            |
-                       +----v----+
-                       |   App   |
-                       | busybox |
-                       | httpd   |
-                       | :8080   |
-                       +---------+
-                            |
-                       /srv/www/
-                       (your games)
+```mermaid
+graph TD
+    Internet["Internet"] -.->|blocked| X["X"]
+    TailNet["Tailscale Network"] --> TS["Tailscale Container<br/>:443 HTTPS"]
+    TS -->|shared network namespace| APP["App<br/>busybox httpd<br/>:8080"]
+    APP --> WWW["/srv/www/<br/>(your games)"]
 ```
 
 The `network_mode: service:tailscale` directive is the critical piece. It makes
@@ -408,19 +394,14 @@ docker compose exec tailscale wget -qO- http://127.0.0.1:8080/ | head -5
 The workflow at `.github/workflows/build-and-publish-release.yml` handles Miyoo
 binary releases:
 
-```
-Trigger: git tag push matching v*
-         OR manual workflow_dispatch
-
-Step 1: Check if miyoo/ files changed
-Step 2: Discover game directories (miyoo/*/)
-Step 3: Build each game in parallel:
-        - Install Rust + armv7 target
-        - Install gcc-arm-linux-gnueabihf
-        - cargo build --release --target armv7-unknown-linux-gnueabihf
-        - Upload binary as artifact
-Step 4: Download all artifacts
-Step 5: Publish GitHub Release with all binaries
+```mermaid
+graph TD
+    Trigger["Trigger: git tag push v*<br/>OR manual workflow_dispatch"]
+    Trigger --> Step1["Step 1: Check if miyoo/ files changed"]
+    Step1 --> Step2["Step 2: Discover game directories (miyoo/*/)"]
+    Step2 --> Step3["Step 3: Build each game in parallel<br/>- Install Rust + armv7 target<br/>- Install gcc-arm-linux-gnueabihf<br/>- cargo build --release --target armv7<br/>- Upload binary as artifact"]
+    Step3 --> Step4["Step 4: Download all artifacts"]
+    Step4 --> Step5["Step 5: Publish GitHub Release with all binaries"]
 ```
 
 ### Creating a Release

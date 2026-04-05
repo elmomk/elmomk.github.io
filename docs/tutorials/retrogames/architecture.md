@@ -22,31 +22,15 @@ nothing external. Each game is a self-contained unit. The deployment
 infrastructure (Docker, Tailscale, CI/CD) wraps around the games without the
 games knowing or caring.
 
-```
-    +--------------------------------------------------+
-    |                   PLAYER                         |
-    +--------------------------------------------------+
-           |                            |
-    +------v------+            +--------v--------+
-    |   Browser   |            |  Miyoo Mini Plus |
-    |  (any device)|           |  (ARM handheld)  |
-    +------+------+            +--------+--------+
-           |                            |
-    +------v------+            +--------v--------+
-    |  Tailscale  |            |  GitHub Release  |
-    |  HTTPS Proxy|            |  Binary Download |
-    +------+------+            +-----------------+
-           |
-    +------v------+
-    |  Docker:     |
-    |  busybox     |
-    |  httpd :8080 |
-    +------+------+
-           |
-    +------v------+
-    |  web/        |
-    |  Static HTML |
-    +--------------+
+```mermaid
+graph TD
+    PLAYER[PLAYER]
+    PLAYER --> Browser["Browser<br/>(any device)"]
+    PLAYER --> Miyoo["Miyoo Mini Plus<br/>(ARM handheld)"]
+    Browser --> Tailscale["Tailscale<br/>HTTPS Proxy"]
+    Miyoo --> Release["GitHub Release<br/>Binary Download"]
+    Tailscale --> Docker["Docker:<br/>busybox<br/>httpd :8080"]
+    Docker --> Web["web/<br/>Static HTML"]
 ```
 
 ---
@@ -201,11 +185,12 @@ look.
 
 Every game follows the same state flow:
 
-```
-    START --> STORY --> PLAYING --> LEVEL_STORY --> PLAYING --> ... --> WIN
-                                       |
-                                       v
-                                   GAME_OVER
+```mermaid
+graph LR
+    START --> STORY --> PLAYING --> LEVEL_STORY
+    LEVEL_STORY --> PLAYING
+    PLAYING --> WIN
+    PLAYING --> GAME_OVER
 ```
 
 States are simple string comparisons in JavaScript, enum variants in Rust. Each
@@ -311,22 +296,13 @@ expose the games over HTTPS on a private tailnet.
 
 ### Container Architecture
 
-```
-+-------------------------------------------------------+
-|                  Docker Compose Stack                  |
-|                                                       |
-|  +------------------+     +------------------------+  |
-|  |    tailscale      |     |         app            |  |
-|  |                  |     |                        |  |
-|  |  Tailscale daemon|     |  busybox httpd         |  |
-|  |  HTTPS :443      |---->|  :8080                 |  |
-|  |  (ts-serve.json) |     |  serves /srv/www/      |  |
-|  |                  |     |                        |  |
-|  |  Volumes:        |     |  network_mode:         |  |
-|  |  - state         |     |   service:tailscale    |  |
-|  |  - serve config  |     |                        |  |
-|  +------------------+     +------------------------+  |
-+-------------------------------------------------------+
+```mermaid
+graph LR
+    subgraph DockerCompose["Docker Compose Stack"]
+        TS["tailscale<br/><br/>Tailscale daemon<br/>HTTPS :443<br/>(ts-serve.json)<br/><br/>Volumes:<br/>- state<br/>- serve config"]
+        APP["app<br/><br/>busybox httpd<br/>:8080<br/>serves /srv/www/<br/><br/>network_mode:<br/>service:tailscale"]
+        TS -->|proxy| APP
+    end
 ```
 
 The key insight is `network_mode: service:tailscale`. This makes the app
@@ -384,25 +360,18 @@ ports.
 
 ### Pipeline Flow
 
-```
-Tag push (v*)
-    |
-    v
-Check Miyoo Changes -------> No changes? Skip.
-    |
-    v
-Discover Games
-    |  (python3 scans miyoo/*/ for subdirectories)
-    v
-Build Matrix ----+----> Build micro (ARM cross-compile)
-                 +----> Build space (ARM cross-compile)
-                 +----> Build shadow (ARM cross-compile)
-                 +----> Build arena (ARM cross-compile)
-                 +----> Build dragon (ARM cross-compile)
-                 |
-                 v
-         Publish GitHub Release
-         (all binaries as assets)
+```mermaid
+graph TD
+    Tag["Tag push (v*)"] --> Check["Check Miyoo Changes"]
+    Check -->|No changes| Skip["Skip"]
+    Check --> Discover["Discover Games<br/>(python3 scans miyoo/*/ for subdirectories)"]
+    Discover --> Matrix["Build Matrix"]
+    Matrix --> micro["Build micro<br/>(ARM cross-compile)"]
+    Matrix --> space["Build space<br/>(ARM cross-compile)"]
+    Matrix --> shadow["Build shadow<br/>(ARM cross-compile)"]
+    Matrix --> arena["Build arena<br/>(ARM cross-compile)"]
+    Matrix --> dragon["Build dragon<br/>(ARM cross-compile)"]
+    micro & space & shadow & arena & dragon --> Publish["Publish GitHub Release<br/>(all binaries as assets)"]
 ```
 
 Key design decisions:
@@ -432,56 +401,28 @@ The CI installs `gcc-arm-linux-gnueabihf` via apt, adds the Rust target via
 
 ### Browser Path
 
-```
-Developer writes index.html
-        |
-        v
-git push to main
-        |
-        v
-docker compose build      (copies web/ into busybox image)
-        |
-        v
-docker compose up -d       (starts tailscale + app)
-        |
-        v
-Tailscale joins tailnet    (hostname: retrogames)
-        |
-        v
-HTTPS :443 --> proxy --> busybox httpd :8080
-        |
-        v
-Player opens https://retrogames.<tailnet>/micro/
-        |
-        v
-Browser downloads single HTML file
-        |
-        v
-JavaScript boots, creates Canvas, runs game loop
+```mermaid
+graph TD
+    A["Developer writes index.html"] --> B["git push to main"]
+    B --> C["docker compose build<br/>(copies web/ into busybox image)"]
+    C --> D["docker compose up -d<br/>(starts tailscale + app)"]
+    D --> E["Tailscale joins tailnet<br/>(hostname: retrogames)"]
+    E --> F["HTTPS :443 → proxy → busybox httpd :8080"]
+    F --> G["Player opens https://retrogames.tailnet/micro/"]
+    G --> H["Browser downloads single HTML file"]
+    H --> I["JavaScript boots, creates Canvas, runs game loop"]
 ```
 
 ### Miyoo Path
 
-```
-Developer writes main.rs
-        |
-        v
-git push + tag v1.x
-        |
-        v
-GitHub Actions: cross-compile for armv7
-        |
-        v
-Publish binary to GitHub Releases
-        |
-        v
-User downloads <game>_miyoo binary
-        |
-        v
-Copy to Miyoo Mini Plus SD card
-        |
-        v
-Launch from device menu, plays at 640x480 on hardware
+```mermaid
+graph TD
+    A["Developer writes main.rs"] --> B["git push + tag v1.x"]
+    B --> C["GitHub Actions: cross-compile for armv7"]
+    C --> D["Publish binary to GitHub Releases"]
+    D --> E["User downloads game_miyoo binary"]
+    E --> F["Copy to Miyoo Mini Plus SD card"]
+    F --> G["Launch from device menu, plays at 640x480 on hardware"]
 ```
 
 ---

@@ -85,19 +85,24 @@ function resizeCanvas() {
 }
 ```
 
-```
-Phone (9:16 portrait):        Desktop (16:9):
-+------------------+          +---------------------------+
-|   (letterbox)    |          |   (pillarbox)  GAME  (pb) |
-| +==============+ |          +---------------------------+
-| |              | |
-| |    GAME      | |          Phone (9:16 landscape):
-| |   640x480    | |          +---------------------------+
-| |   scaled     | |          | +=======================+ |
-| |              | |          | |        GAME            | |
-| +==============+ |          | +=======================+ |
-|   (letterbox)    |          +---------------------------+
-+------------------+
+```mermaid
+graph LR
+    subgraph Portrait["Phone 9:16 portrait"]
+        direction TB
+        LB1["(letterbox)"]
+        GP["GAME<br/>640x480 scaled"]
+        LB2["(letterbox)"]
+    end
+    subgraph Desktop["Desktop 16:9"]
+        direction LR
+        PB1["(pillarbox)"]
+        GD["GAME"]
+        PB2["(pillarbox)"]
+    end
+    subgraph Landscape["Phone 9:16 landscape"]
+        direction TB
+        GL["GAME<br/>fills width"]
+    end
 ```
 
 ### Drawing with Scale
@@ -152,18 +157,17 @@ into blurry mush.
 
 ### Layout
 
-```
-+-----------------------------------+
-|                                   |
-|           GAME AREA               |
-|                                   |
-|                                   |
-+-----------------+-----------------+
-|                 |                 |
-|   JOYSTICK      |      [B]  [A]  |
-|   ZONE          |                 |
-|  (left 50%)     |   (right side)  |
-+-----------------+-----------------+
+```mermaid
+graph TD
+    subgraph Screen
+        direction TB
+        GAME["GAME AREA"]
+        subgraph Controls
+            direction LR
+            JOY["JOYSTICK ZONE<br/>(left 50%)"]
+            BTNS["[B] [A]<br/>(right side)"]
+        end
+    end
 ```
 
 The left half of the lower screen is the joystick zone. The right side has
@@ -237,21 +241,14 @@ joystickZone.addEventListener('touchend', (e) => {
 
 ### Deadzone Design
 
-```
-         No input
-      +----------+
-      |          |
-      |  DEAD    |
-      |  ZONE    |  DEADZONE = 15px
-      |  (15px)  |
-      +----------+
-     /            \
-    /   Active     \
-   /    Input       \
-  /    Zone          \
- /   (15-50px)        \
-+----------------------+
-      MAX_DIST = 50px
+```mermaid
+graph TD
+    subgraph Joystick["Joystick Zones"]
+        DZ["DEAD ZONE<br/>radius = 15px<br/>No input"]
+        AZ["Active Input Zone<br/>15-50px"]
+        MAX["MAX_DIST = 50px"]
+    end
+    DZ --> AZ --> MAX
 ```
 
 The deadzone prevents accidental movement from thumb resting on the joystick.
@@ -335,14 +332,12 @@ function getInput() {
 Modern phones have display cutouts (notches, camera holes, rounded corners)
 that can obscure game content if not handled:
 
-```
-+-------+-------+
-|       |NOTCH  |
-|       +---+   |
-|               |
-|    GAME       |  <-- Content hidden behind notch
-|               |
-+---------------+
+```mermaid
+graph TD
+    subgraph Phone["Phone Screen"]
+        NOTCH["NOTCH"]
+        GAME["GAME<br/>(content hidden behind notch)"]
+    end
 ```
 
 ### The Solution: `env(safe-area-inset-*)`
@@ -373,16 +368,12 @@ This pushes the canvas content and touch controls away from the notch and
 rounded corners. `viewport-fit=cover` in the meta tag is required for these
 values to be non-zero.
 
-```
-With safe-area insets:
-+-------+-------+
-|       |NOTCH  |
-|  +----+---+   |
-|  |         |   |
-|  |  GAME   |   |  <-- Content safely inside insets
-|  |         |   |
-|  +---------+   |
-+----------------+
+```mermaid
+graph TD
+    subgraph Phone["Phone Screen (with safe-area insets)"]
+        NOTCH2["NOTCH"]
+        GAME2["GAME<br/>(content safely inside insets)"]
+    end
 ```
 
 ---

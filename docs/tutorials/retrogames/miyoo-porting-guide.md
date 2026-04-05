@@ -370,23 +370,16 @@ data races. Period.
 
 ### The Physical Layout
 
-```
-        +-----------------------------------+
-        |            MIYOO MINI PLUS        |
-        |   +---------------------------+   |
-        |   |                           |   |
-        |   |        640 x 480          |   |
-        |   |         SCREEN            |   |
-        |   |                           |   |
-        |   +---------------------------+   |
-        |                                   |
-        |   D-PAD          [X] [Y]          |
-        |  +----+                           |
-        |  |U   |          [A] [B]          |
-        |  |L R |                           |
-        |  |D   |    [SEL]  [START]         |
-        |  +----+                           |
-        +-----------------------------------+
+```mermaid
+graph TD
+    subgraph Miyoo["MIYOO MINI PLUS"]
+        SCREEN["640 x 480<br/>SCREEN"]
+        subgraph Controls["Controls"]
+            direction LR
+            DPAD["D-PAD<br/>U / D / L / R"]
+            BTNS["[X] [Y]<br/>[A] [B]<br/>[SEL] [START]"]
+        end
+    end
 ```
 
 ### Macroquad Key Mapping
