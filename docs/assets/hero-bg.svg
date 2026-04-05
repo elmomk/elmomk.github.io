@@ -74,50 +74,50 @@
     <animateTransform attributeName="transform" type="translate" values="0,0; 30,20; -20,-15; 0,0" dur="20s" repeatCount="indefinite"/>
   </ellipse>
 
-  <!-- Shooting stars / falling stars -->
-  <!-- Meteor 1: fast, top-left to mid -->
+  <!-- Shooting stars / falling stars — bold, visible trails -->
+  <!-- Meteor 1: bright white, top-left -->
   <g opacity="0">
-    <line x1="0" y1="0" x2="120" y2="0" stroke="url(#meteor1)" stroke-width="2" stroke-linecap="round" transform="rotate(35)"/>
-    <circle cx="0" cy="0" r="2" fill="#fff"/>
+    <line x1="0" y1="0" x2="250" y2="0" stroke="url(#meteor1)" stroke-width="4" stroke-linecap="round" transform="rotate(30)"/>
+    <circle cx="0" cy="0" r="5" fill="#fff" filter="url(#blur-sm)"/>
     <animateTransform attributeName="transform" type="translate"
-      values="200,-20; 600,180" dur="1.8s" begin="0s; 8s" repeatCount="indefinite"/>
-    <animate attributeName="opacity" values="0;0;0.9;0.9;0" dur="1.8s" begin="0s; 8s" keyTimes="0;0.1;0.2;0.8;1" repeatCount="indefinite"/>
+      values="100,-30; 700,250" dur="2s" begin="0s; 6s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0;0;1;1;0" dur="2s" begin="0s; 6s" keyTimes="0;0.05;0.1;0.7;1" repeatCount="indefinite"/>
   </g>
 
-  <!-- Meteor 2: slower, right side -->
+  <!-- Meteor 2: green tint, right side -->
   <g opacity="0">
-    <line x1="0" y1="0" x2="90" y2="0" stroke="url(#meteor2)" stroke-width="1.5" stroke-linecap="round" transform="rotate(40)"/>
-    <circle cx="0" cy="0" r="1.5" fill="#10b981"/>
+    <line x1="0" y1="0" x2="200" y2="0" stroke="url(#meteor2)" stroke-width="3" stroke-linecap="round" transform="rotate(35)"/>
+    <circle cx="0" cy="0" r="4" fill="#10b981" filter="url(#blur-sm)"/>
     <animateTransform attributeName="transform" type="translate"
-      values="1100,10; 1400,160" dur="2.2s" begin="3s; 11s" repeatCount="indefinite"/>
-    <animate attributeName="opacity" values="0;0;0.7;0.7;0" dur="2.2s" begin="3s; 11s" keyTimes="0;0.1;0.2;0.85;1" repeatCount="indefinite"/>
+      values="1000,-20; 1500,200" dur="2.5s" begin="2s; 8s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0;0;0.9;0.9;0" dur="2.5s" begin="2s; 8s" keyTimes="0;0.05;0.1;0.75;1" repeatCount="indefinite"/>
   </g>
 
-  <!-- Meteor 3: mid-speed, center -->
+  <!-- Meteor 3: bright, center, fast -->
   <g opacity="0">
-    <line x1="0" y1="0" x2="150" y2="0" stroke="url(#meteor1)" stroke-width="1.8" stroke-linecap="round" transform="rotate(30)"/>
-    <circle cx="0" cy="0" r="2.5" fill="#fff"/>
+    <line x1="0" y1="0" x2="300" y2="0" stroke="url(#meteor1)" stroke-width="4.5" stroke-linecap="round" transform="rotate(25)"/>
+    <circle cx="0" cy="0" r="6" fill="#fff" filter="url(#blur-sm)"/>
     <animateTransform attributeName="transform" type="translate"
-      values="700,-10; 1050,140" dur="1.5s" begin="5.5s; 13.5s" repeatCount="indefinite"/>
-    <animate attributeName="opacity" values="0;0;1;1;0" dur="1.5s" begin="5.5s; 13.5s" keyTimes="0;0.05;0.15;0.75;1" repeatCount="indefinite"/>
+      values="500,-40; 1100,200" dur="1.8s" begin="4s; 10s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0;0;1;1;0" dur="1.8s" begin="4s; 10s" keyTimes="0;0.05;0.12;0.65;1" repeatCount="indefinite"/>
   </g>
 
-  <!-- Meteor 4: small, fast, left -->
+  <!-- Meteor 4: blue tint, left side, small -->
   <g opacity="0">
-    <line x1="0" y1="0" x2="60" y2="0" stroke="url(#meteor3)" stroke-width="1" stroke-linecap="round" transform="rotate(38)"/>
-    <circle cx="0" cy="0" r="1" fill="#3b82f6"/>
+    <line x1="0" y1="0" x2="150" y2="0" stroke="url(#meteor3)" stroke-width="2.5" stroke-linecap="round" transform="rotate(33)"/>
+    <circle cx="0" cy="0" r="3" fill="#3b82f6" filter="url(#blur-sm)"/>
     <animateTransform attributeName="transform" type="translate"
-      values="350,5; 550,110" dur="1.2s" begin="7s; 15s" repeatCount="indefinite"/>
-    <animate attributeName="opacity" values="0;0;0.6;0.6;0" dur="1.2s" begin="7s; 15s" keyTimes="0;0.1;0.2;0.8;1" repeatCount="indefinite"/>
+      values="250,0; 600,150" dur="1.5s" begin="5s; 11s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0;0;0.8;0.8;0" dur="1.5s" begin="5s; 11s" keyTimes="0;0.08;0.15;0.75;1" repeatCount="indefinite"/>
   </g>
 
-  <!-- Meteor 5: long trail, top-right -->
+  <!-- Meteor 5: long bright trail, top-right -->
   <g opacity="0">
-    <line x1="0" y1="0" x2="180" y2="0" stroke="url(#meteor1)" stroke-width="1.5" stroke-linecap="round" transform="rotate(32)"/>
-    <circle cx="0" cy="0" r="2" fill="#fff"/>
+    <line x1="0" y1="0" x2="280" y2="0" stroke="url(#meteor1)" stroke-width="3.5" stroke-linecap="round" transform="rotate(28)"/>
+    <circle cx="0" cy="0" r="5" fill="#fff" filter="url(#blur-sm)"/>
     <animateTransform attributeName="transform" type="translate"
-      values="1300,-15; 1550,100" dur="1.6s" begin="1.5s; 9.5s" repeatCount="indefinite"/>
-    <animate attributeName="opacity" values="0;0;0.8;0.8;0" dur="1.6s" begin="1.5s; 9.5s" keyTimes="0;0.1;0.2;0.8;1" repeatCount="indefinite"/>
+      values="1200,-25; 1600,120" dur="1.6s" begin="1s; 7s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0;0;1;1;0" dur="1.6s" begin="1s; 7s" keyTimes="0;0.05;0.1;0.7;1" repeatCount="indefinite"/>
   </g>
 
   <!-- Stars -->
