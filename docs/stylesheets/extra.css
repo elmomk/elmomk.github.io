@@ -29,6 +29,17 @@
   color: var(--md-default-fg-color--light);
 }
 
+/* ── Sidebar collapse arrows ──────────────────────────── */
+
+.md-nav__icon::after {
+  background-color: currentcolor;
+}
+
+/* Rotate arrow when expanded */
+.md-nav__toggle:checked ~ .md-nav__link .md-nav__icon {
+  transform: rotate(90deg);
+}
+
 /* ── Per-project page accents ─────────────────────────── */
 
 /* Gorilla ecosystem — green/jungle */
