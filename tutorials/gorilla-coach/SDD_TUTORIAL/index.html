@@ -1,0 +1,5342 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Platform engineering, Rust, infrastructure, and open source">
+      
+      
+        <meta name="author" content="Mo">
+      
+      
+        <link rel="canonical" href="https://elmomk.github.io/tutorials/gorilla-coach/SDD_TUTORIAL/">
+      
+      
+        <link rel="prev" href="../ARCHITECTURE_PATTERNS_TUTORIAL/">
+      
+      
+        <link rel="next" href="../VAULT_ARCHITECTURE/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Spec-Driven Dev - Mo's Lab</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#spec-driven-development-building-software-from-a-blueprint" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="Mo&#39;s Lab" class="md-header__button md-logo" aria-label="Mo's Lab" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Mo's Lab
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Spec-Driven Dev
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="teal"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="teal"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/elmomk" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    elmomk
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../projects/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Projects
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Tutorials
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../blog/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Blog
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../about/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  About
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="Mo&#39;s Lab" class="md-nav__button md-logo" aria-label="Mo's Lab" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Mo's Lab
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/elmomk" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    elmomk
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../projects/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Projects
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Projects
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gorilla Ecosystem
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Gorilla Ecosystem
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../projects/gorilla-coach/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    gorilla_coach
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../projects/gorilla-mcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    gorilla_mcp
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../projects/gapi/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    gapi
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Claude Code Tooling
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Claude Code Tooling
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../projects/cc-watcher/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    cc-watcher.nvim
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../projects/tmux-cc-attention/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    tmux_cc_attention
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Side Projects
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Side Projects
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../projects/lifemanager/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    lifemanager
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../projects/retrogames/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    retrogames
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gorilla Coach
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Gorilla Coach
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RUST_TUTORIAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Rust Tutorial
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../FRONTEND_TUTORIAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Frontend (Dioxus)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATABASE_TUTORIAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Database
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../LLM_AGENTS_TUTORIAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM Agents
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GARMIN_AUTH_TUTORIAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Garmin Auth
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GOOGLE_SHEETS_TUTORIAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Google Sheets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../WASM_PWA_DIOXUS_TUTORIAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    WASM & PWA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../SCALING_TUTORIAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ARCHITECTURE_PATTERNS_TUTORIAL/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Patterns
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spec-Driven Dev
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Spec-Driven Dev
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#reference-texts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reference Texts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-what-is-spec-driven-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. What Is Spec-Driven Development?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-what-is-vibe-coding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. What Is Vibe Coding?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-why-sdd-exists-the-cost-of-ambiguity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Why SDD Exists: The Cost of Ambiguity
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-the-spec-document-anatomy-and-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. The Spec Document: Anatomy and Purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-section-1-context-goal-the-why" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Section 1: Context &amp; Goal — The "Why"
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-section-2-architecture-tech-stack-the-how" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Section 2: Architecture &amp; Tech Stack — The "How"
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Section 2: Architecture &amp; Tech Stack — The &#34;How&#34;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-pin-versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Pin Versions?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-ascii-architecture-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The ASCII Architecture Diagram
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-section-3-domain-model-the-what" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Section 3: Domain Model — The "What"
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-section-4-core-features-the-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Section 4: Core Features — The "Requirements"
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Section 4: Core Features — The &#34;Requirements&#34;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-right-level-of-detail" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Right Level of Detail
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-section-5-out-of-scope-the-anti-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Section 5: Out of Scope — The "Anti-Goals"
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Section 5: Out of Scope — The &#34;Anti-Goals&#34;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#anti-goals-as-conversation-enders" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Anti-Goals as Conversation Enders
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-section-6-execution-plan-the-sequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Section 6: Execution Plan — The "Sequence"
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Section 6: Execution Plan — The &#34;Sequence&#34;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-sequence-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Sequence Matters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-sdd-vs-vibe-coding-a-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. SDD vs Vibe Coding: A Comparison
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. SDD vs Vibe Coding: A Comparison">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cost-profiles-over-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cost Profiles Over Time
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-when-vibe-coding-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. When Vibe Coding Works
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-when-sdd-is-essential" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. When SDD Is Essential
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-sdd-vibe-coding-the-hybrid-approach" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. SDD + Vibe Coding: The Hybrid Approach
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="14. SDD + Vibe Coding: The Hybrid Approach">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-vibe-spec-build-cycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Vibe → Spec → Build Cycle
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-workflow-gemini-vs-code-copilot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Workflow: Gemini + VS Code + Copilot
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="15. Workflow: Gemini + VS Code + Copilot">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tool-roles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Roles
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-by-step-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step-by-Step Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-this-workflow-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why This Workflow Works
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-writing-the-spec-a-step-by-step-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. Writing the Spec: A Step-by-Step Guide
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="16. Writing the Spec: A Step-by-Step Guide">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#start-with-the-unknowns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Start with the Unknowns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-concrete-names" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use Concrete Names
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#write-acceptance-criteria-as-must-statements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Write Acceptance Criteria as "Must" Statements
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#include-anti-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Include Anti-Goals
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#write-for-two-audiences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Write for Two Audiences
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17-using-the-spec-to-drive-ai-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        17. Using the Spec to Drive AI Implementation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="17. Using the Spec to Drive AI Implementation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-copy-paste-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Copy-Paste Pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-file-reference-pattern-vs-code-copilot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The File-Reference Pattern (VS Code Copilot)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-incremental-build-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Incremental Build Pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-correction-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Correction Pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#18-sdd-as-a-learning-accelerator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        18. SDD as a Learning Accelerator
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="18. SDD as a Learning Accelerator">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-you-learn-by-writing-the-spec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What You Learn by Writing the Spec
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-learning-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Learning Loop
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sdd-vibe-coding-for-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SDD + Vibe Coding for Learning
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#19-common-anti-patterns-and-how-to-avoid-them" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        19. Common Anti-Patterns and How to Avoid Them
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="19. Common Anti-Patterns and How to Avoid Them">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#anti-pattern-1-the-novel-length-spec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Anti-Pattern 1: The Novel-Length Spec
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#anti-pattern-2-the-spec-thats-never-updated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Anti-Pattern 2: The Spec That's Never Updated
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#anti-pattern-3-specifying-what-you-dont-understand" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Anti-Pattern 3: Specifying What You Don't Understand
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#anti-pattern-4-no-anti-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Anti-Pattern 4: No Anti-Goals
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#anti-pattern-5-skipping-the-domain-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Anti-Pattern 5: Skipping the Domain Model
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#anti-pattern-6-spec-without-sequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Anti-Pattern 6: Spec Without Sequence
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#day-2-operations-maintaining-the-spec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Day-2 Operations: Maintaining the Spec
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Day-2 Operations: Maintaining the Spec">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#spec-drift-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spec Drift Detection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-update-the-spec-vs-write-a-new-one" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When to Update the Spec vs Write a New One
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-the-spec-for-onboarding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the Spec for Onboarding
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spec-driven-bug-reports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spec-Driven Bug Reports
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#20-further-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        20. Further Reading
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../VAULT_ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Vault Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Gorilla MCP
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Gorilla MCP
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../gorilla-mcp/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../gorilla-mcp/tools-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tools Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../gorilla-mcp/chatbot/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chatbot
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../gorilla-mcp/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../gorilla-mcp/deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../gorilla-mcp/development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Life Manager
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Life Manager
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lifemanager/01-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lifemanager/02-dioxus-fullstack/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dioxus Fullstack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lifemanager/03-data-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lifemanager/04-components/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Components
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lifemanager/05-security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lifemanager/06-ocr-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OCR Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lifemanager/07-deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lifemanager/08-developer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lifemanager/dioxus-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dioxus Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lifemanager/tesseract-ocr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tesseract OCR
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lifemanager/pwa-deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PWA Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Retro Arcade
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Retro Arcade
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../retrogames/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../retrogames/game-engine-patterns/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Game Engine Patterns
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../retrogames/miyoo-porting-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Miyoo Porting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../retrogames/mobile-optimization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mobile Optimization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../retrogames/adding-games/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adding Games
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../retrogames/deployment-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    cc-watcher.nvim
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    cc-watcher.nvim
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cc-watcher/tutorial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cc-watcher/lua-plugin-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lua Plugin Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    tmux_cc_attention
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    tmux_cc_attention
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tmux-cc-attention/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../../blog/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blog
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Blog
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Archive
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Archive
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../blog/archive/2026/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2026
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Categories
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Categories
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+    
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../blog/category/general/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    General
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../about/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    About
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#reference-texts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reference Texts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-what-is-spec-driven-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. What Is Spec-Driven Development?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-what-is-vibe-coding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. What Is Vibe Coding?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-why-sdd-exists-the-cost-of-ambiguity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Why SDD Exists: The Cost of Ambiguity
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-the-spec-document-anatomy-and-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. The Spec Document: Anatomy and Purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-section-1-context-goal-the-why" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Section 1: Context &amp; Goal — The "Why"
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-section-2-architecture-tech-stack-the-how" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Section 2: Architecture &amp; Tech Stack — The "How"
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Section 2: Architecture &amp; Tech Stack — The &#34;How&#34;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-pin-versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Pin Versions?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-ascii-architecture-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The ASCII Architecture Diagram
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-section-3-domain-model-the-what" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Section 3: Domain Model — The "What"
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-section-4-core-features-the-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Section 4: Core Features — The "Requirements"
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Section 4: Core Features — The &#34;Requirements&#34;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-right-level-of-detail" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Right Level of Detail
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-section-5-out-of-scope-the-anti-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Section 5: Out of Scope — The "Anti-Goals"
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Section 5: Out of Scope — The &#34;Anti-Goals&#34;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#anti-goals-as-conversation-enders" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Anti-Goals as Conversation Enders
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-section-6-execution-plan-the-sequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Section 6: Execution Plan — The "Sequence"
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Section 6: Execution Plan — The &#34;Sequence&#34;">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-sequence-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Sequence Matters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-sdd-vs-vibe-coding-a-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. SDD vs Vibe Coding: A Comparison
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. SDD vs Vibe Coding: A Comparison">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cost-profiles-over-time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cost Profiles Over Time
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-when-vibe-coding-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. When Vibe Coding Works
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-when-sdd-is-essential" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. When SDD Is Essential
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-sdd-vibe-coding-the-hybrid-approach" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. SDD + Vibe Coding: The Hybrid Approach
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="14. SDD + Vibe Coding: The Hybrid Approach">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-vibe-spec-build-cycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Vibe → Spec → Build Cycle
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-workflow-gemini-vs-code-copilot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Workflow: Gemini + VS Code + Copilot
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="15. Workflow: Gemini + VS Code + Copilot">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tool-roles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool Roles
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-by-step-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step-by-Step Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-this-workflow-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why This Workflow Works
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-writing-the-spec-a-step-by-step-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. Writing the Spec: A Step-by-Step Guide
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="16. Writing the Spec: A Step-by-Step Guide">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#start-with-the-unknowns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Start with the Unknowns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#use-concrete-names" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use Concrete Names
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#write-acceptance-criteria-as-must-statements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Write Acceptance Criteria as "Must" Statements
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#include-anti-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Include Anti-Goals
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#write-for-two-audiences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Write for Two Audiences
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17-using-the-spec-to-drive-ai-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        17. Using the Spec to Drive AI Implementation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="17. Using the Spec to Drive AI Implementation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-copy-paste-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Copy-Paste Pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-file-reference-pattern-vs-code-copilot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The File-Reference Pattern (VS Code Copilot)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-incremental-build-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Incremental Build Pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-correction-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Correction Pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#18-sdd-as-a-learning-accelerator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        18. SDD as a Learning Accelerator
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="18. SDD as a Learning Accelerator">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-you-learn-by-writing-the-spec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What You Learn by Writing the Spec
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-learning-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Learning Loop
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sdd-vibe-coding-for-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SDD + Vibe Coding for Learning
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#19-common-anti-patterns-and-how-to-avoid-them" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        19. Common Anti-Patterns and How to Avoid Them
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="19. Common Anti-Patterns and How to Avoid Them">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#anti-pattern-1-the-novel-length-spec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Anti-Pattern 1: The Novel-Length Spec
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#anti-pattern-2-the-spec-thats-never-updated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Anti-Pattern 2: The Spec That's Never Updated
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#anti-pattern-3-specifying-what-you-dont-understand" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Anti-Pattern 3: Specifying What You Don't Understand
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#anti-pattern-4-no-anti-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Anti-Pattern 4: No Anti-Goals
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#anti-pattern-5-skipping-the-domain-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Anti-Pattern 5: Skipping the Domain Model
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#anti-pattern-6-spec-without-sequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Anti-Pattern 6: Spec Without Sequence
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#day-2-operations-maintaining-the-spec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Day-2 Operations: Maintaining the Spec
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Day-2 Operations: Maintaining the Spec">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#spec-drift-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spec Drift Detection
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-to-update-the-spec-vs-write-a-new-one" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When to Update the Spec vs Write a New One
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-the-spec-for-onboarding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the Spec for Onboarding
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#spec-driven-bug-reports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Spec-Driven Bug Reports
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#20-further-reading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        20. Further Reading
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="spec-driven-development-building-software-from-a-blueprint">Spec-Driven Development: Building Software from a Blueprint<a class="headerlink" href="#spec-driven-development-building-software-from-a-blueprint" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><em>"Weeks of coding can save you hours of planning."</em>
+— Unknown (widely attributed)</p>
+</blockquote>
+<p>This tutorial explains <strong>Spec-Driven Development (SDD)</strong> — the practice of
+writing a detailed specification before writing any code, then using that
+spec to guide an AI coding agent through implementation. We contrast SDD with
+"vibe coding" (prompt-and-pray), show how to combine both for accelerated
+learning, and walk through concrete examples using Gorilla Coach's own
+<code>spec.md</code> as the reference artifact.</p>
+<hr />
+<h2 id="reference-texts">Reference Texts<a class="headerlink" href="#reference-texts" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Abbreviation</th>
+<th>Book</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PP</strong></td>
+<td>Andrew Hunt &amp; David Thomas — <em>The Pragmatic Programmer</em>, 20th Anniversary Ed. (2019)</td>
+</tr>
+<tr>
+<td><strong>DDIA</strong></td>
+<td>Martin Kleppmann — <em>Designing Data-Intensive Applications</em> (2017)</td>
+</tr>
+<tr>
+<td><strong>CA</strong></td>
+<td>Robert C. Martin — <em>Clean Architecture</em> (2017)</td>
+</tr>
+<tr>
+<td><strong>DDD</strong></td>
+<td>Eric Evans — <em>Domain-Driven Design</em> (2003)</td>
+</tr>
+<tr>
+<td><strong>Mythical</strong></td>
+<td>Frederick P. Brooks Jr. — <em>The Mythical Man-Month</em>, Anniversary Ed. (1995)</td>
+</tr>
+<tr>
+<td><strong>YNAB</strong></td>
+<td>Kent Beck — <em>Test-Driven Development: By Example</em> (2002)</td>
+</tr>
+<tr>
+<td><strong>Shape</strong></td>
+<td>Ryan Singer — <em>Shape Up: Stop Running in Circles and Ship Work that Matters</em> (2019)</td>
+</tr>
+<tr>
+<td><strong>ZtP</strong></td>
+<td>Luca Palmieri — <em>Zero To Production in Rust</em> (2022)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
+<ol>
+<li><a href="#1-what-is-sdd">What Is Spec-Driven Development?</a></li>
+<li><a href="#2-what-is-vibe-coding">What Is Vibe Coding?</a></li>
+<li><a href="#3-why-sdd-exists">Why SDD Exists: The Cost of Ambiguity</a></li>
+<li><a href="#4-the-spec-document">The Spec Document: Anatomy and Purpose</a></li>
+<li><a href="#5-section-1-context-and-goal">Section 1: Context &amp; Goal — The "Why"</a></li>
+<li><a href="#6-section-2-architecture">Section 2: Architecture &amp; Tech Stack — The "How"</a></li>
+<li><a href="#7-section-3-domain-model">Section 3: Domain Model — The "What"</a></li>
+<li><a href="#8-section-4-core-features">Section 4: Core Features — The "Requirements"</a></li>
+<li><a href="#9-section-5-out-of-scope">Section 5: Out of Scope — The "Anti-Goals"</a></li>
+<li><a href="#10-section-6-execution-plan">Section 6: Execution Plan — The "Sequence"</a></li>
+<li><a href="#11-sdd-vs-vibe-coding">SDD vs Vibe Coding: A Comparison</a></li>
+<li><a href="#12-when-vibe-coding-works">When Vibe Coding Works</a></li>
+<li><a href="#13-when-sdd-is-essential">When SDD Is Essential</a></li>
+<li><a href="#14-hybrid-approach">SDD + Vibe Coding: The Hybrid Approach</a></li>
+<li><a href="#15-workflow-gemini-vscode">Workflow: Gemini + VS Code + Copilot</a></li>
+<li><a href="#16-writing-the-spec">Writing the Spec: A Step-by-Step Guide</a></li>
+<li><a href="#17-driving-ai-implementation">Using the Spec to Drive AI Implementation</a></li>
+<li><a href="#18-learning-accelerator">SDD as a Learning Accelerator</a></li>
+<li><a href="#19-anti-patterns">Common Anti-Patterns and How to Avoid Them</a></li>
+<li><a href="#20-further-reading">Further Reading</a></li>
+</ol>
+<hr />
+<h2 id="1-what-is-spec-driven-development">1. What Is Spec-Driven Development?<a class="headerlink" href="#1-what-is-spec-driven-development" title="Permanent link">&para;</a></h2>
+<p>Spec-Driven Development is the practice of writing a comprehensive project
+specification <strong>before</strong> writing any implementation code, then using that
+specification as the authoritative guide for all implementation decisions.</p>
+<p>The spec is not a napkin sketch. It is a <strong>machine-readable contract</strong> that
+defines:
+- What the system does (features)
+- What the system is built from (architecture, libraries)
+- What the data looks like (domain model)
+- What the system must NOT do (anti-goals)
+- In what order to build it (execution plan)</p>
+<p>In the context of AI-assisted development, the spec becomes the <strong>system
+prompt for your codebase</strong>. When you paste the spec into Gemini, Claude, or
+GPT-4 and say "implement Feature 3," the AI has full context to generate
+correct, consistent code on the first try.</p>
+<blockquote>
+<p><strong>Mythical</strong>, Chapter 2: <em>"The bearing of a child takes nine months, no
+matter how many women are assigned."</em> But the blueprint of a house — the
+spec — determines whether the builders can work in parallel, whether they'll
+tear out walls, and whether the plumbing connects to the kitchen.</p>
+</blockquote>
+<p>SDD is not new. It's what the software industry called "writing a design
+document" or "technical specification" for decades. What's new is the
+audience: the spec is now written for both humans AND AI agents.</p>
+<hr />
+<h2 id="2-what-is-vibe-coding">2. What Is Vibe Coding?<a class="headerlink" href="#2-what-is-vibe-coding" title="Permanent link">&para;</a></h2>
+<p>Vibe coding is the practice of building software by describing what you want
+in natural language to an AI, iterating on the output, and steering by feel.
+The term was coined by Andrej Karpathy in February 2025:</p>
+<blockquote>
+<p><em>"There's a new kind of coding I call 'vibe coding', where you fully give
+in to the vibes, embrace exponential technologies, and forget that the code
+even exists."</em></p>
+</blockquote>
+<p>In practice, vibe coding looks like this:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>You:     &quot;Make me a fitness app with charts&quot;
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>AI:      [generates 500 lines of React + Chart.js]
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>You:     &quot;Add a login page&quot;
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>AI:      [generates auth, possibly conflicting with the first output]
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>You:     &quot;Now add a database&quot;
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>AI:      [generates schema, may not match existing state]
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>You:     &quot;The chart is broken&quot;
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>AI:      [fixes one thing, breaks another]
+</span></code></pre></div>
+<p>Vibe coding is <strong>exploratory</strong> — you discover requirements as you go. The AI
+is a pair programmer who types fast but has no memory and no blueprint. Each
+prompt operates on the current state of the code, which may be inconsistent
+because no one defined what "consistent" means.</p>
+<hr />
+<h2 id="3-why-sdd-exists-the-cost-of-ambiguity">3. Why SDD Exists: The Cost of Ambiguity<a class="headerlink" href="#3-why-sdd-exists-the-cost-of-ambiguity" title="Permanent link">&para;</a></h2>
+<p>The fundamental problem in software engineering, whether with human or AI
+developers, is ambiguity. When requirements are unclear, implementation
+decisions are arbitrary. Arbitrary decisions compound into inconsistency.
+Inconsistency compounds into bugs.</p>
+<p>Consider Gorilla Coach without a spec:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Prompt: &quot;Store Garmin data in Postgres&quot;
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>AI Decision Tree (unknowns):
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>├── What fields? (42 fields? 10? 100?)
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>├── What types? (grams or kg for weight? seconds or minutes for sleep?)
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>├── Composite PK or auto-increment?
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>├── Upsert on conflict? Replace? Error?
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>├── If upsert, COALESCE to preserve existing non-null? Or overwrite?
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>├── One table or multiple tables for different data categories?
+</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>├── TimescaleDB hypertable? Regular table?
+</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>├── Encrypt sensitive fields? Which ones are sensitive?
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>└── ...every decision here multiplies the possibility space
+</span></code></pre></div>
+<p>Without a spec, the AI makes roughly plausible guesses. Each guess has maybe
+a 70% chance of matching what you actually want. With 10 independent decisions,
+the probability of all being correct is 0.7^10 ≈ 2.8%. You'll spend the next
+hour correcting the 97.2% that went wrong.</p>
+<p>With a spec:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>## Domain Model
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>* **`GarminDailyData`** (`domain.rs`)
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  - `user_id: Uuid` + `date: NaiveDate` (composite PK)
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>  - 42 biometric fields across 10 categories:
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    - **Steps &amp; Activity:** steps, distance_meters, ...
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>  - Upserted via ON CONFLICT ... DO UPDATE SET ... COALESCE
+</span></code></pre></div>
+<p>Now the AI has zero ambiguity. Every field name, every type, every conflict
+resolution strategy is spelled out. The implementation is deterministic.</p>
+<blockquote>
+<p><strong>PP</strong>, Tip 15: <em>"Every Piece of Knowledge Must Have a Single, Unambiguous,
+Authoritative Representation Within a System."</em> The spec IS that
+representation.</p>
+</blockquote>
+<hr />
+<h2 id="4-the-spec-document-anatomy-and-purpose">4. The Spec Document: Anatomy and Purpose<a class="headerlink" href="#4-the-spec-document-anatomy-and-purpose" title="Permanent link">&para;</a></h2>
+<p>Gorilla Coach's spec (<code>spec.md</code>) has 6 sections. Each serves a distinct
+purpose in reducing ambiguity:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>spec.md
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>├── 1. Context &amp; Goal         — WHY are we building this?
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>├── 2. Architecture            — HOW is it structured?
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>├── 3. Domain Model            — WHAT does the data look like?
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>├── 4. Core Features           — WHAT must it do?
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>├── 5. Out of Scope            — WHAT must it NOT do?
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>└── 6. Execution Plan          — IN WHAT ORDER?
+</span></code></pre></div>
+<p>This is not accidental. Each section eliminates a different class of
+AI hallucination:</p>
+<table>
+<thead>
+<tr>
+<th>Section</th>
+<th>Eliminates</th>
+<th>AI Failure Without It</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Context &amp; Goal</td>
+<td>"What is this app for?"</td>
+<td>AI builds a generic CRUD app</td>
+</tr>
+<tr>
+<td>Architecture</td>
+<td>"What stack do we use?"</td>
+<td>AI picks React, Django, MongoDB</td>
+</tr>
+<tr>
+<td>Domain Model</td>
+<td>"What fields exist?"</td>
+<td>AI invents fields, wrong types</td>
+</tr>
+<tr>
+<td>Core Features</td>
+<td>"What should it do?"</td>
+<td>AI implements wishlist features</td>
+</tr>
+<tr>
+<td>Out of Scope</td>
+<td>"What should it NOT do?"</td>
+<td>AI adds WebSockets, ORMs, etc.</td>
+</tr>
+<tr>
+<td>Execution Plan</td>
+<td>"What order?"</td>
+<td>AI tries to build everything at once</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5-section-1-context-goal-the-why">5. Section 1: Context &amp; Goal — The "Why"<a class="headerlink" href="#5-section-1-context-goal-the-why" title="Permanent link">&para;</a></h2>
+<p>The first section of Gorilla Coach's spec opens with three questions:
+<strong>What is this?</strong>, <strong>Why are we building it?</strong>, and implicitly, <strong>For whom?</strong></p>
+<div class="language-markdown highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="gu">## 1. Context &amp; Goal</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="gs">**What is this?**</span> A self-hosted, server-rendered AI fitness coaching web
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>application that ingests daily biometric data from Garmin Connect, stores it
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>in PostgreSQL, and uses LLM-powered chat with tool-calling...
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="gs">**Why are we building it?**</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="k">-</span><span class="w"> </span>To provide an always-available, privacy-first AI fitness coach...
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="k">-</span><span class="w"> </span>To automate the daily &quot;how am I doing?&quot; analysis...
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="k">-</span><span class="w"> </span>To create a single pane of glass where Garmin wearable data...
+</span></code></pre></div>
+<p>This serves two purposes:</p>
+<ol>
+<li>
+<p><strong>For the human</strong>: Crystallizes the project vision. Forces you to articulate
+   why this needs to exist. If you can't write this section, you don't
+   understand what you're building.</p>
+</li>
+<li>
+<p><strong>For the AI</strong>: Establishes domain context. The AI now knows this is a
+   fitness app, not a generic dashboard. When it generates code, it will use
+   fitness terminology, Garmin concepts, and health-related data patterns.</p>
+</li>
+</ol>
+<blockquote>
+<p><strong>Shape</strong>, Chapter 2 — Shaping: <em>"When we shape the work, we're applying
+judgment to bring it to the right level of abstraction."</em> The Context
+section shapes the project at the highest level.</p>
+</blockquote>
+<hr />
+<h2 id="6-section-2-architecture-tech-stack-the-how">6. Section 2: Architecture &amp; Tech Stack — The "How"<a class="headerlink" href="#6-section-2-architecture-tech-stack-the-how" title="Permanent link">&para;</a></h2>
+<p>This section pins every major technical decision:</p>
+<div class="language-markdown highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="gu">### Language/Framework</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Language:**</span> Rust (2021 edition)
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Web Framework:**</span> Axum 0.8 (async, tower-based)
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="gu">### Key Libraries</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>| Crate | Purpose |
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>|---|---|
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>| <span class="sb">`axum`</span> 0.8 | HTTP routing, extractors, multipart |
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>| <span class="sb">`sqlx`</span> 0.8 | Async PostgreSQL driver |
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>| <span class="sb">`chacha20poly1305`</span> 0.10 | AEAD encryption |
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>| ...
+</span></code></pre></div>
+<h3 id="why-pin-versions">Why Pin Versions?<a class="headerlink" href="#why-pin-versions" title="Permanent link">&para;</a></h3>
+<p>Without version pinning, the AI generates code for whatever version it was
+trained on — which may be 2 years old. Common failures:</p>
+<table>
+<thead>
+<tr>
+<th>Without Pin</th>
+<th>AI Generates</th>
+<th>Reality</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>"Use Axum"</td>
+<td>Axum 0.6 code (Router::new vs Router::without_state)</td>
+<td>Breaking API change in 0.7/0.8</td>
+</tr>
+<tr>
+<td>"Use sqlx"</td>
+<td><code>sqlx::query!</code> with <code>DATABASE_URL</code> at compile time</td>
+<td>You want runtime <code>query_as</code></td>
+</tr>
+<tr>
+<td>"Use reqwest"</td>
+<td><code>reqwest::get</code> with no TLS feature</td>
+<td>Fails without <code>features = ["rustls-tls"]</code></td>
+</tr>
+</tbody>
+</table>
+<p>By listing every crate with its version and purpose, you eliminate an entire
+category of "AI generated outdated code" problems.</p>
+<h3 id="the-ascii-architecture-diagram">The ASCII Architecture Diagram<a class="headerlink" href="#the-ascii-architecture-diagram" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Browser (htmx + Chart.js + vanilla JS)
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>  ↓ HTTP :3000
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>Axum 0.8 Router → middleware/
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>  ↓
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>handlers/{auth,calendar,chat,dashboard,files,...}
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>  ↓
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>┌─────────┬──────────┬──────────┬──────────┐
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>│garmin.rs│ llm/     │ vault.rs │ repo.rs  │
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>└─────────┴──────────┴──────────┴──────────┘
+</span></code></pre></div>
+<p>This gives the AI a <strong>spatial understanding</strong> of the codebase. When asked to
+implement a handler, it knows the handler talks to the LLM adapter, the
+repository, or both — and it knows the handler does NOT talk to the database
+directly (it goes through the repository).</p>
+<hr />
+<h2 id="7-section-3-domain-model-the-what">7. Section 3: Domain Model — The "What"<a class="headerlink" href="#7-section-3-domain-model-the-what" title="Permanent link">&para;</a></h2>
+<p>This is the most critical section for AI code generation. It defines every
+entity, every field, every type, and every relationship:</p>
+<div class="language-markdown highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">*</span><span class="w"> </span><span class="gs">**`GarminDailyData`**</span> (<span class="sb">`domain.rs`</span>)
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="k">-</span><span class="w"> </span><span class="sb">`user_id: Uuid`</span> + <span class="sb">`date: NaiveDate`</span> (composite PK)
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="k">-</span><span class="w"> </span>42 biometric fields across 10 categories:
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="k">-</span><span class="w"> </span><span class="gs">**Steps &amp; Activity:**</span> <span class="sb">`steps`</span>, <span class="sb">`distance_meters`</span>, ...
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="k">-</span><span class="w"> </span><span class="gs">**Heart Rate:**</span> <span class="sb">`resting_heart_rate`</span>, <span class="sb">`max_heart_rate`</span>, ...
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="k">-</span><span class="w"> </span>Has <span class="sb">`has_data()`</span> method that returns true if any field is populated
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">  </span><span class="k">-</span><span class="w"> </span>Upserted via <span class="sb">`ON CONFLICT (user_id, date) DO UPDATE SET ...`</span>
+</span></code></pre></div>
+<p>Notice the precision:
+- <strong>File location</strong>: <code>domain.rs</code> — the AI knows where to put it
+- <strong>Primary key</strong>: Composite <code>(user_id, date)</code> — not auto-increment
+- <strong>Field names</strong>: Exact Rust identifiers — <code>resting_heart_rate</code>, not <code>restingHR</code>
+- <strong>Methods</strong>: <code>has_data()</code> with behavior spec
+- <strong>Conflict strategy</strong>: <code>ON CONFLICT ... DO UPDATE SET ... COALESCE</code></p>
+<p>The spec also distinguishes <strong>Entities</strong> (identity-based, mutable) from
+<strong>Value Objects</strong> (immutable, equality by value):</p>
+<div class="language-markdown highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="gu">### Entities (Identity-based)</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="k">*</span><span class="w"> </span>User, UserSettings, GarminDailyData, TrainingSetLog, ChatMessage
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="gu">### Value Objects (Immutable)</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="k">*</span><span class="w"> </span>AnalystIntent, GarminSession, LoginResult, AppError, AppConfig
+</span></code></pre></div>
+<blockquote>
+<p><strong>DDD</strong>, Chapter 5: <em>"An object defined primarily by its identity is called
+an Entity. An object that describes some characteristic or attribute but
+carries no concept of identity is called a Value Object."</em></p>
+</blockquote>
+<hr />
+<h2 id="8-section-4-core-features-the-requirements">8. Section 4: Core Features — The "Requirements"<a class="headerlink" href="#8-section-4-core-features-the-requirements" title="Permanent link">&para;</a></h2>
+<p>Each feature is structured with the same pattern:</p>
+<ol>
+<li><strong>Title</strong> — What capability is this?</li>
+<li><strong>Description</strong> — One sentence summary</li>
+<li><strong>Technical Detail</strong> — Bullet points with implementation specifics</li>
+<li><strong>Acceptance Criteria</strong> — "Must" statements that define done</li>
+</ol>
+<p>Example from Feature 1 (Garmin Sync):</p>
+<div class="language-markdown highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="gu">### Feature 1: Garmin Connect Integration &amp; Data Sync</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="k">-</span><span class="w"> </span><span class="ge">*Auth Flow:*</span> SSO embed → signin → CSRF → credentials → optional MFA →
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>  ticket → OAuth1 → OAuth2.
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="k">-</span><span class="w"> </span><span class="ge">*Token Lifecycle:*</span> OAuth2 ~1 hour. OAuth1 ~1 year. Proactive refresh.
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="k">-</span><span class="w"> </span><span class="ge">*Daily Sync:*</span> 12 endpoints in parallel via tokio::join!.
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="k">-</span><span class="w"> </span><span class="ge">*Acceptance Criteria:*</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">  </span><span class="k">-</span><span class="w"> </span>Must handle MFA challenges gracefully, returning MfaRequired
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">  </span><span class="k">-</span><span class="w"> </span>Must stop all API calls immediately on HTTP 429
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">  </span><span class="k">-</span><span class="w"> </span>Must upsert with COALESCE to never overwrite non-null with null
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">  </span><span class="k">-</span><span class="w"> </span>Must encrypt the full GarminSession at rest
+</span></code></pre></div>
+<p>The acceptance criteria are the spec's <strong>test suite</strong>. When you implement
+Feature 1, you can verify correctness by checking each "must" statement. The
+AI can also use them to self-validate: "Does my implementation handle MFA?
+Does it stop on 429?"</p>
+<h3 id="the-right-level-of-detail">The Right Level of Detail<a class="headerlink" href="#the-right-level-of-detail" title="Permanent link">&para;</a></h3>
+<p>The spec is detailed enough to implement from, but not so detailed that it
+contains code. This is deliberate:</p>
+<table>
+<thead>
+<tr>
+<th>Too Vague</th>
+<th>Right Level</th>
+<th>Too Detailed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>"Support Garmin"</td>
+<td>"12 endpoints in parallel via tokio::join!"</td>
+<td>"Use tokio::join! with exactly these 12 URLs: ..."</td>
+</tr>
+<tr>
+<td>"Save data"</td>
+<td>"Upsert via ON CONFLICT with COALESCE"</td>
+<td>"Write this exact SQL: INSERT INTO ..."</td>
+</tr>
+<tr>
+<td>"Handle errors"</td>
+<td>"Stop all calls on 429, refresh on 401"</td>
+<td>"match status { 429 =&gt; break, 401 =&gt; ..."</td>
+</tr>
+</tbody>
+</table>
+<p>The middle column gives the AI enough to make correct decisions without
+dictating implementation. This leaves room for the AI to use Rust idioms
+you might not have thought of.</p>
+<hr />
+<h2 id="9-section-5-out-of-scope-the-anti-goals">9. Section 5: Out of Scope — The "Anti-Goals"<a class="headerlink" href="#9-section-5-out-of-scope-the-anti-goals" title="Permanent link">&para;</a></h2>
+<p>This is the section that prevents AI hallucination. Without it, the AI will
+"helpfully" add features you didn't ask for:</p>
+<div class="language-markdown highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="gu">## 5. Out of Scope (Anti-Goals)</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Do not implement a SPA frontend.**</span> No React, Vue, Svelte.
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Do not use an ORM.**</span> No Diesel, SeaORM.
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Do not use a template engine.**</span> No Tera, Askama, Maud.
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Do not add WebSocket support.**</span> SSE only.
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Do not cache LLM responses.**</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Do not implement push notifications.**</span>
+</span></code></pre></div>
+<p>Each anti-goal is phrased as "Do not X" with a concrete example of what X
+looks like. This is critical because AI models are trained on millions of
+projects that DO use React, DO use ORMs, DO use template engines. Without
+explicit prohibition, the AI defaults to the popular choice.</p>
+<h3 id="anti-goals-as-conversation-enders">Anti-Goals as Conversation Enders<a class="headerlink" href="#anti-goals-as-conversation-enders" title="Permanent link">&para;</a></h3>
+<p>When you're iterating with an AI and it suggests "we should add Askama for
+templating," you don't need to have a debate. Point to the spec:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>You: &quot;spec.md says &#39;Do not use a template engine.&#39; The v1 HTML is generated
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>     via Rust format! strings in ui/. The v2 frontend uses Dioxus Wasm.
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>     Please follow the spec.&quot;
+</span></code></pre></div>
+<p>This is especially powerful with AI agents that can read files. The agent
+reads your spec, sees the anti-goal, and course-corrects without argument.</p>
+<blockquote>
+<p><strong>CA</strong>, Chapter 15 — What Is Architecture?: <em>"The purpose of architecture
+is to facilitate the development, deployment, operation, and maintenance of
+the software system. The strategy behind that facilitation is to leave as
+many options open as possible."</em> Anti-goals are the options you've
+deliberately closed — for good reasons documented in the spec.</p>
+</blockquote>
+<hr />
+<h2 id="10-section-6-execution-plan-the-sequence">10. Section 6: Execution Plan — The "Sequence"<a class="headerlink" href="#10-section-6-execution-plan-the-sequence" title="Permanent link">&para;</a></h2>
+<p>The last section tells the AI (or human) the order in which to build:</p>
+<div class="language-markdown highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="gu">## 6. AI Agent Execution Plan</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="gu">### Step 1: Project Scaffold &amp; Build Configuration</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="k">-</span><span class="w"> </span>Verify Cargo.toml ...
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="k">-</span><span class="w"> </span>Run cargo check
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Stop for review.**</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="gu">### Step 2: Core Domain Models, Repository &amp; Vault</span>
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="k">-</span><span class="w"> </span>Verify domain.rs ...
+</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="k">-</span><span class="w"> </span>Run cargo test
+</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Stop for review.**</span>
+</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>
+</span><span id="__span-12-13"><a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="gu">### Step 3: LLM Adapter Layer &amp; AI Analyst</span>
+</span><span id="__span-12-14"><a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a><span class="k">-</span><span class="w"> </span>Verify LlmAdapter trait ...
+</span><span id="__span-12-15"><a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Stop for review.**</span>
+</span><span id="__span-12-16"><a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a>
+</span><span id="__span-12-17"><a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a><span class="gu">### Step 4: Handlers, Middleware, Routing &amp; Integration</span>
+</span><span id="__span-12-18"><a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a><span class="k">-</span><span class="w"> </span>Verify all handler modules ...
+</span><span id="__span-12-19"><a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a><span class="k">-</span><span class="w"> </span>Run cargo test — all 37 tests must pass.
+</span><span id="__span-12-20"><a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a><span class="k">-</span><span class="w"> </span><span class="gs">**Stop for review.**</span>
+</span></code></pre></div>
+<p>The "Stop for review" markers are checkpoints. They prevent the AI from
+building the entire project in one shot (which invariably produces
+inconsistencies in later steps as it loses context from earlier ones).</p>
+<h3 id="why-sequence-matters">Why Sequence Matters<a class="headerlink" href="#why-sequence-matters" title="Permanent link">&para;</a></h3>
+<p>Building in the right order prevents cascading errors:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>Step 1: Scaffold     → No dependencies → can&#39;t go wrong
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>Step 2: Domain       → Models are independent → self-contained
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>Step 3: LLM          → Depends on domain (AnalystIntent) → domain must exist
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>Step 4: Handlers     → Depends on everything → must be last
+</span></code></pre></div>
+<p>If you build handlers first, you don't have the domain types they extract.
+If you build the LLM adapter before the domain model, you don't have
+<code>AnalystIntent</code>. The dependency graph dictates the build order.</p>
+<hr />
+<h2 id="11-sdd-vs-vibe-coding-a-comparison">11. SDD vs Vibe Coding: A Comparison<a class="headerlink" href="#11-sdd-vs-vibe-coding-a-comparison" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th>SDD</th>
+<th>Vibe Coding</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Planning</strong></td>
+<td>Hours/days upfront</td>
+<td>None — discover as you go</td>
+</tr>
+<tr>
+<td><strong>Spec artifact</strong></td>
+<td>Comprehensive document</td>
+<td>Chat history (ephemeral)</td>
+</tr>
+<tr>
+<td><strong>AI context</strong></td>
+<td>Full project spec</td>
+<td>Last few messages</td>
+</tr>
+<tr>
+<td><strong>Consistency</strong></td>
+<td>High — all decisions trace to spec</td>
+<td>Low — decisions are ad hoc</td>
+</tr>
+<tr>
+<td><strong>Refactoring</strong></td>
+<td>Rare — architecture is pre-designed</td>
+<td>Frequent — architecture emerges</td>
+</tr>
+<tr>
+<td><strong>Best for</strong></td>
+<td>Production systems, complex apps</td>
+<td>Prototypes, experiments, learning</td>
+</tr>
+<tr>
+<td><strong>Failure mode</strong></td>
+<td>Over-specification (analysis paralysis)</td>
+<td>Under-specification (spaghetti)</td>
+</tr>
+<tr>
+<td><strong>AI token efficiency</strong></td>
+<td>High — spec is reused across sessions</td>
+<td>Low — context re-explained each time</td>
+</tr>
+<tr>
+<td><strong>Learning value</strong></td>
+<td>Learn architecture, design, patterns</td>
+<td>Learn tools, APIs, syntax</td>
+</tr>
+</tbody>
+</table>
+<h3 id="cost-profiles-over-time">Cost Profiles Over Time<a class="headerlink" href="#cost-profiles-over-time" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>                    SDD
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>Cumulative    ╱‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>  Cost    ___╱                    ← steep upfront (writing spec)
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>         ╱                          then steady, linear progress
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>        ╱
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>───────╱──────────────────────────── Time →
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>                    Vibe Coding
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>Cumulative              ╱
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>  Cost             ___╱
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>                 ╱  ╱     ← starts free, then exponential
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>            ___╱  ╱         as technical debt accumulates
+</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>         __╱   ╱
+</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>        ╱    ╱
+</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>───────╱───╱──────────────────────── Time →
+</span></code></pre></div>
+<p>SDD has a fixed upfront cost (writing the spec) followed by linear
+implementation. Vibe coding starts faster but accumulates technical debt
+that makes later changes increasingly expensive.</p>
+<hr />
+<h2 id="12-when-vibe-coding-works">12. When Vibe Coding Works<a class="headerlink" href="#12-when-vibe-coding-works" title="Permanent link">&para;</a></h2>
+<p>Vibe coding is not always wrong. It's the right approach for:</p>
+<p><strong>1. Throwaway prototypes</strong></p>
+<p>"I want to see what a fitness dashboard looks like with Chart.js." You don't
+need a spec for a 200-line proof of concept that you'll delete tomorrow.</p>
+<p><strong>2. Learning a new technology</strong></p>
+<p>"I've never used Axum — let me ask the AI to show me how handlers work." The
+goal is understanding, not production code. Vibe coding is exploratory.</p>
+<p><strong>3. Single-file scripts</strong></p>
+<p>"Write me a one-off script to parse this CSV." No architecture needed. No
+domain model. It's 50 lines and done.</p>
+<p><strong>4. Well-understood CRUD</strong></p>
+<p>"Make a REST API for a todo list." The requirements are universally known.
+The AI has seen thousands of todo apps. The spec is implicit.</p>
+<p><strong>5. Creative exploration</strong></p>
+<p>"What if the coach persona spoke like a drill sergeant?" You're exploring
+tone and style, not implementing a feature. Iterate freely.</p>
+<hr />
+<h2 id="13-when-sdd-is-essential">13. When SDD Is Essential<a class="headerlink" href="#13-when-sdd-is-essential" title="Permanent link">&para;</a></h2>
+<p>SDD becomes essential when any of these are true:</p>
+<p><strong>1. The system has more than one module</strong></p>
+<p>Gorilla Coach has: garmin/, llm/, repository/, vault.rs, handlers/,
+middleware/, reports/, ui/ (legacy), and the gorilla_shared + gorilla_client
+crates. These modules must agree on data types, error handling,
+and state management. Without a spec, they drift.</p>
+<p><strong>2. Data integrity matters</strong></p>
+<p>The 42-field <code>GarminDailyData</code> struct must match the database schema, the API
+parsing code, the upsert SQL, and the dashboard JSON. One mismatch means data
+loss or corruption. The spec defines the canonical field list.</p>
+<p><strong>3. Security is non-negotiable</strong></p>
+<p>"All sensitive data encrypted at rest." "CSRF on state-changing methods."
+"Rate limiting on auth routes." These requirements must be specified upfront
+because forgetting one is a vulnerability, not a feature request.</p>
+<p><strong>4. Multiple AI sessions are involved</strong></p>
+<p>If you're building over days or weeks, each AI session starts fresh. The spec
+provides continuity. Without it, Session 3 contradicts Session 1 because the
+AI has no memory of what was decided.</p>
+<p><strong>5. The system integrates with external APIs</strong></p>
+<p>Garmin's SSO flow has 8 steps. Google's service account auth has a specific
+JWT structure. You can't vibe code a reverse-engineered auth flow — it either
+matches the protocol exactly or it fails entirely.</p>
+<hr />
+<h2 id="14-sdd-vibe-coding-the-hybrid-approach">14. SDD + Vibe Coding: The Hybrid Approach<a class="headerlink" href="#14-sdd-vibe-coding-the-hybrid-approach" title="Permanent link">&para;</a></h2>
+<p>The most productive approach combines both methods:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>Phase 1: SDD — Write the spec
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>    &quot;I know WHAT I want. Let me document it precisely.&quot;
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>Phase 2: SDD — Implement core architecture
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>    &quot;Build the skeleton: domain, repository, LLM adapter.&quot;
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>Phase 3: Vibe Coding — Explore the edges
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>    &quot;What should the dashboard look like?&quot;
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>    &quot;How should the chat persona feel?&quot;
+</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>    &quot;Try different Chart.js visualizations.&quot;
+</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>
+</span><span id="__span-15-12"><a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>Phase 4: SDD — Codify the decisions
+</span><span id="__span-15-13"><a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a>    Update the spec with what you learned from Phase 3.
+</span><span id="__span-15-14"><a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a>
+</span><span id="__span-15-15"><a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a>Phase 5: SDD — Implement the final version
+</span><span id="__span-15-16"><a id="__codelineno-15-16" name="__codelineno-15-16" href="#__codelineno-15-16"></a>    Build the production UI/UX based on the updated spec.
+</span></code></pre></div>
+<h3 id="the-vibe-spec-build-cycle">The Vibe → Spec → Build Cycle<a class="headerlink" href="#the-vibe-spec-build-cycle" title="Permanent link">&para;</a></h3>
+<p>This is how Gorilla Coach was actually developed:</p>
+<ol>
+<li>
+<p><strong>Vibe</strong>: "I want a fitness app that talks like a military coach." →
+   Experimented with system prompts in the Gemini playground.</p>
+</li>
+<li>
+<p><strong>Spec</strong>: The system prompt that worked best was documented in the spec
+   under Feature 2's system prompt description.</p>
+</li>
+<li>
+<p><strong>Build</strong>: The AI implemented the exact system prompt from the spec.</p>
+</li>
+<li>
+<p><strong>Vibe</strong>: "What if the chat could query metrics directly?" →
+   Experimented with tool-calling in the playground.</p>
+</li>
+<li>
+<p><strong>Spec</strong>: The analyst pipeline (two-stage classification → safe SQL) was
+   documented as Feature 3.</p>
+</li>
+<li>
+<p><strong>Build</strong>: The AI implemented Feature 3 from the spec.</p>
+</li>
+</ol>
+<p>The key insight: <strong>vibe coding is for exploration, SDD is for implementation</strong>.
+Use vibe coding to discover what you want, then write it down, then build it.</p>
+<blockquote>
+<p><strong>YNAB</strong>, Chapter 1: <em>"Clean code that works — in Ron Jeffries' phrase —
+is the goal of Test-Driven Development."</em> Specs are to implementation
+what tests are to code: they define correctness before the work begins.</p>
+</blockquote>
+<hr />
+<h2 id="15-workflow-gemini-vs-code-copilot">15. Workflow: Gemini + VS Code + Copilot<a class="headerlink" href="#15-workflow-gemini-vs-code-copilot" title="Permanent link">&para;</a></h2>
+<p>Here is the concrete workflow for using SDD with modern AI tools:</p>
+<h3 id="tool-roles">Tool Roles<a class="headerlink" href="#tool-roles" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Role in SDD</th>
+<th>When to Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Gemini (web)</strong></td>
+<td>Spec co-author, architecture reviewer</td>
+<td>Phase 1: writing and refining the spec</td>
+</tr>
+<tr>
+<td><strong>VS Code + Copilot</strong></td>
+<td>Implementation engine</td>
+<td>Phase 2+: building from the spec</td>
+</tr>
+<tr>
+<td><strong>Gemini API</strong></td>
+<td>Runtime LLM (in-app)</td>
+<td>Production: chat, analyst</td>
+</tr>
+</tbody>
+</table>
+<h3 id="step-by-step-workflow">Step-by-Step Workflow<a class="headerlink" href="#step-by-step-workflow" title="Permanent link">&para;</a></h3>
+<p><strong>Step 1: Draft the spec with Gemini (web interface)</strong></p>
+<p>Open Gemini in the browser. Paste your initial idea and iterate:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>You:     &quot;I want to build a self-hosted fitness coaching app in Rust with
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>          Axum. It should sync Garmin data and use LLM chat with tool-calling.
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>          Help me write a spec document.&quot;
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>Gemini:  [generates initial spec structure]
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>You:     &quot;Add a domain model section. The main entity is GarminDailyData
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>          with these fields: resting_heart_rate, hrv_weekly_avg, ...&quot;
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>Gemini:  [refines the domain model]
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>You:     &quot;Add anti-goals. I don&#39;t want an SPA, no ORM, no template engine.&quot;
+</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>Gemini:  [adds Out of Scope section]
+</span></code></pre></div>
+<p>Iterate until the spec is complete. This is Phase 1 — pure specification,
+no code. The Gemini web interface is ideal here because it supports long
+conversations, remembers context within the session, and can help you think
+through architecture decisions.</p>
+<p><strong>Step 2: Save the spec as <code>spec.md</code> in your project root</strong></p>
+<p>The spec must be a file in your workspace, not a chat history. This makes it
+accessible to VS Code Copilot and to any AI agent that can read files.</p>
+<p><strong>Step 3: Add <code>spec.md</code> to your Copilot instructions</strong></p>
+<p>In <code>.github/copilot-instructions.md</code>:</p>
+<div class="language-markdown highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="gu">## Architecture Overview</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>Self-hosted Rust/Axum fitness coaching app.
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>See spec.md for the complete specification.
+</span></code></pre></div>
+<p>Or reference the spec directly in your agent mode configuration. Now every
+Copilot session has access to the project's architectural decisions without
+you repeating them.</p>
+<p><strong>Step 4: Implement feature-by-feature with Copilot</strong></p>
+<p>Open VS Code. Start a Copilot chat session. Tell it to implement from the
+spec:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>You:     &quot;Read spec.md. Implement Feature 1 (Garmin Connect Integration),
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>          Step 2 (Domain Model). Create the GarminDailyData struct in
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>          domain.rs with all 42 fields.&quot;
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>Copilot: [reads spec, generates the complete struct]
+</span></code></pre></div>
+<p>Because Copilot has the spec in context (via the instructions file or by
+reading <code>spec.md</code> directly), it generates code that matches the specification
+exactly — correct field names, correct types, correct derive macros.</p>
+<p><strong>Step 5: Use vibe coding for exploration within the spec's boundaries</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>You:     &quot;The spec says the dashboard has 5 views (day/week/month/year/range).
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>          Show me what the week view chart could look like with Chart.js.&quot;
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>Copilot: [generates chart code, experimenting with styles]
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>You:     &quot;I like the stacked bar chart for activities. Keep that, drop the
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>          pie chart.&quot;
+</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>Copilot: [refines the implementation]
+</span></code></pre></div>
+<p>This is hybrid mode: the architecture is fixed by the spec, but the visual
+details are explored via vibe coding.</p>
+<h3 id="why-this-workflow-works">Why This Workflow Works<a class="headerlink" href="#why-this-workflow-works" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>Gemini (web)   → Good at: long conversations, brainstorming, spec writing
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>VS Code Copilot → Good at: code generation, file editing, test running
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>spec.md        → The bridge: written in Gemini, consumed by Copilot
+</span></code></pre></div>
+<p>Gemini's web interface excels at the kind of iterative, conversational
+refinement that spec writing requires — you're thinking out loud, and the AI
+helps structure your thoughts. But Gemini's web interface can't edit files,
+run tests, or read your codebase.</p>
+<p>VS Code Copilot excels at implementation — it reads your files, understands
+your types, and generates code in context. But it's not ideal for long
+brainstorming sessions about architecture.</p>
+<p>The spec is the handoff artifact between them.</p>
+<hr />
+<h2 id="16-writing-the-spec-a-step-by-step-guide">16. Writing the Spec: A Step-by-Step Guide<a class="headerlink" href="#16-writing-the-spec-a-step-by-step-guide" title="Permanent link">&para;</a></h2>
+<h3 id="start-with-the-unknowns">Start with the Unknowns<a class="headerlink" href="#start-with-the-unknowns" title="Permanent link">&para;</a></h3>
+<p>Before writing, list what you don't know:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>- What fields does Garmin&#39;s API actually return?
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>- How does Garmin SSO authentication work?
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>- What Chat.js chart types exist?
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>- How does Axum&#39;s middleware stack work?
+</span></code></pre></div>
+<p>Research these first. Vibe code small experiments. Read documentation. Only
+then write the spec — because the spec should contain <strong>decisions</strong>, not
+<strong>questions</strong>.</p>
+<h3 id="use-concrete-names">Use Concrete Names<a class="headerlink" href="#use-concrete-names" title="Permanent link">&para;</a></h3>
+<p>Bad:
+<div class="language-markdown highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>The system stores user health data in a database table.
+</span></code></pre></div></p>
+<p>Good:
+<div class="language-markdown highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="sb">`GarminDailyData`</span> in <span class="sb">`domain.rs`</span>:
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="k">-</span><span class="w"> </span><span class="sb">`user_id: Uuid`</span> + <span class="sb">`date: NaiveDate`</span> (composite PK)
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="k">-</span><span class="w"> </span><span class="sb">`resting_heart_rate: Option&lt;i32&gt;`</span>
+</span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="k">-</span><span class="w"> </span><span class="sb">`hrv_weekly_avg: Option&lt;f64&gt;`</span>
+</span></code></pre></div></p>
+<p>Concrete names (file paths, function names, type names) eliminate ambiguity.
+The AI doesn't have to guess what "health data" means.</p>
+<h3 id="write-acceptance-criteria-as-must-statements">Write Acceptance Criteria as "Must" Statements<a class="headerlink" href="#write-acceptance-criteria-as-must-statements" title="Permanent link">&para;</a></h3>
+<p>Bad:
+<div class="language-markdown highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>Handle Garmin errors properly.
+</span></code></pre></div></p>
+<p>Good:
+<div class="language-markdown highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="k">-</span><span class="w"> </span>Must stop all API calls immediately on HTTP 429 (rate limit).
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="k">-</span><span class="w"> </span>Must upsert with COALESCE to never overwrite non-null with null.
+</span><span id="__span-25-3"><a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="k">-</span><span class="w"> </span>Must encrypt the full GarminSession at rest.
+</span></code></pre></div></p>
+<p>"Must" statements are testable. You can verify each one after implementation.</p>
+<h3 id="include-anti-goals">Include Anti-Goals<a class="headerlink" href="#include-anti-goals" title="Permanent link">&para;</a></h3>
+<p>For every technology decision, consider the road not taken. If you chose
+Axum, explicitly say "Do not use Actix." If you chose raw SQL, say "Do not
+use an ORM." This prevents the AI from second-guessing your decisions.</p>
+<h3 id="write-for-two-audiences">Write for Two Audiences<a class="headerlink" href="#write-for-two-audiences" title="Permanent link">&para;</a></h3>
+<p>The spec is read by:
+1. <strong>You</strong> (in 3 months, when you've forgotten the decisions)
+2. <strong>AI agents</strong> (which take instructions literally)</p>
+<p>Write for both. Be precise enough for the AI, but structured enough for the
+human. Use headers, tables, and bullet points — these are easy for both
+audiences to parse.</p>
+<hr />
+<h2 id="17-using-the-spec-to-drive-ai-implementation">17. Using the Spec to Drive AI Implementation<a class="headerlink" href="#17-using-the-spec-to-drive-ai-implementation" title="Permanent link">&para;</a></h2>
+<h3 id="the-copy-paste-pattern">The Copy-Paste Pattern<a class="headerlink" href="#the-copy-paste-pattern" title="Permanent link">&para;</a></h3>
+<p>The simplest way to use a spec with AI:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>Prompt: &quot;Here is my project specification:
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>         [paste relevant section]
+</span><span id="__span-26-3"><a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>         Implement [specific feature/component].&quot;
+</span></code></pre></div>
+<p>This works with any AI (Gemini, Claude, GPT-4). The pasted spec provides
+context; the instruction provides direction.</p>
+<h3 id="the-file-reference-pattern-vs-code-copilot">The File-Reference Pattern (VS Code Copilot)<a class="headerlink" href="#the-file-reference-pattern-vs-code-copilot" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>Prompt: &quot;Read spec.md section 3 (Domain Model). Create the TrainingSetLog
+</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>         struct in domain.rs. Follow the exact field names and types from
+</span><span id="__span-27-3"><a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a>         the spec.&quot;
+</span></code></pre></div>
+<p>Copilot reads the file, extracts the section, and implements. No copy-paste
+needed.</p>
+<h3 id="the-incremental-build-pattern">The Incremental Build Pattern<a class="headerlink" href="#the-incremental-build-pattern" title="Permanent link">&para;</a></h3>
+<p>Follow the execution plan step by step:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>Session 1: &quot;Implement Step 1 from spec.md section 6.&quot;
+</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>            → Scaffold, Cargo.toml, migrations
+</span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>
+</span><span id="__span-28-4"><a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a>Session 2: &quot;Implement Step 2 from spec.md section 6.&quot;
+</span><span id="__span-28-5"><a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a>            → Domain models, repository, vault
+</span><span id="__span-28-6"><a id="__codelineno-28-6" name="__codelineno-28-6" href="#__codelineno-28-6"></a>
+</span><span id="__span-28-7"><a id="__codelineno-28-7" name="__codelineno-28-7" href="#__codelineno-28-7"></a>Session 3: &quot;Implement Step 3.&quot;
+</span><span id="__span-28-8"><a id="__codelineno-28-8" name="__codelineno-28-8" href="#__codelineno-28-8"></a>            → LLM adapter, analyst
+</span><span id="__span-28-9"><a id="__codelineno-28-9" name="__codelineno-28-9" href="#__codelineno-28-9"></a>
+</span><span id="__span-28-10"><a id="__codelineno-28-10" name="__codelineno-28-10" href="#__codelineno-28-10"></a>Session 4: &quot;Implement Step 4.&quot;
+</span><span id="__span-28-11"><a id="__codelineno-28-11" name="__codelineno-28-11" href="#__codelineno-28-11"></a>            → Handlers, middleware, integration
+</span></code></pre></div>
+<p>Each session is self-contained. The AI reads the spec, sees what was already
+built (by reading src/), and implements the next layer.</p>
+<h3 id="the-correction-pattern">The Correction Pattern<a class="headerlink" href="#the-correction-pattern" title="Permanent link">&para;</a></h3>
+<p>When the AI deviates from the spec:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>You:     &quot;This implementation uses Diesel for the database query.&quot;
+</span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>AI:      &quot;Would you like me to ...&quot;
+</span><span id="__span-29-3"><a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>You:     &quot;No. spec.md section 5 says &#39;Do not use an ORM. All database
+</span><span id="__span-29-4"><a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a>          access is raw SQL via sqlx.&#39; Rewrite using sqlx::query_as.&quot;
+</span></code></pre></div>
+<p>The spec is your authority. You don't debate — you reference.</p>
+<hr />
+<h2 id="18-sdd-as-a-learning-accelerator">18. SDD as a Learning Accelerator<a class="headerlink" href="#18-sdd-as-a-learning-accelerator" title="Permanent link">&para;</a></h2>
+<p>SDD is not just a development methodology — it's a <strong>learning methodology</strong>.
+Writing a spec forces you to understand the system at a deeper level than
+vibe coding ever does.</p>
+<h3 id="what-you-learn-by-writing-the-spec">What You Learn by Writing the Spec<a class="headerlink" href="#what-you-learn-by-writing-the-spec" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Spec Section</th>
+<th>Forces You to Learn</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Architecture</td>
+<td>How frameworks compose, middleware chaining, async runtime choices</td>
+</tr>
+<tr>
+<td>Domain Model</td>
+<td>Data modeling, normalization, composite keys, upsert strategies</td>
+</tr>
+<tr>
+<td>Core Features</td>
+<td>API design, error handling, security patterns, protocol details</td>
+</tr>
+<tr>
+<td>Anti-Goals</td>
+<td>Why alternatives exist, trade-offs between tools</td>
+</tr>
+<tr>
+<td>Execution Plan</td>
+<td>Dependency ordering, build sequencing, test strategy</td>
+</tr>
+</tbody>
+</table>
+<h3 id="the-learning-loop">The Learning Loop<a class="headerlink" href="#the-learning-loop" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>1. You don&#39;t know how Garmin SSO works
+</span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>    │
+</span><span id="__span-30-3"><a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a>    ├── Research: Read garth source, trace HTTP requests
+</span><span id="__span-30-4"><a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a>    │
+</span><span id="__span-30-5"><a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a>    ├── Experiment: Vibe code a minimal auth flow
+</span><span id="__span-30-6"><a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a>    │
+</span><span id="__span-30-7"><a id="__codelineno-30-7" name="__codelineno-30-7" href="#__codelineno-30-7"></a>    ├── Document: Write Feature 1&#39;s auth flow in the spec
+</span><span id="__span-30-8"><a id="__codelineno-30-8" name="__codelineno-30-8" href="#__codelineno-30-8"></a>    │   &quot;SSO embed → signin → CSRF → credentials → MFA → ticket → OAuth1 → OAuth2&quot;
+</span><span id="__span-30-9"><a id="__codelineno-30-9" name="__codelineno-30-9" href="#__codelineno-30-9"></a>    │
+</span><span id="__span-30-10"><a id="__codelineno-30-10" name="__codelineno-30-10" href="#__codelineno-30-10"></a>    ├── Implement: AI builds the full flow from the spec
+</span><span id="__span-30-11"><a id="__codelineno-30-11" name="__codelineno-30-11" href="#__codelineno-30-11"></a>    │
+</span><span id="__span-30-12"><a id="__codelineno-30-12" name="__codelineno-30-12" href="#__codelineno-30-12"></a>    └── Verify: You can explain every step because you wrote the spec
+</span></code></pre></div>
+<p>Compare with pure vibe coding:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>1. You don&#39;t know how Garmin SSO works
+</span><span id="__span-31-2"><a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>    │
+</span><span id="__span-31-3"><a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a>    ├── Prompt: &quot;Write code to login to Garmin&quot;
+</span><span id="__span-31-4"><a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a>    │
+</span><span id="__span-31-5"><a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a>    ├── AI generates: [500 lines of code]
+</span><span id="__span-31-6"><a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a>    │
+</span><span id="__span-31-7"><a id="__codelineno-31-7" name="__codelineno-31-7" href="#__codelineno-31-7"></a>    ├── It works! (maybe)
+</span><span id="__span-31-8"><a id="__codelineno-31-8" name="__codelineno-31-8" href="#__codelineno-31-8"></a>    │
+</span><span id="__span-31-9"><a id="__codelineno-31-9" name="__codelineno-31-9" href="#__codelineno-31-9"></a>    └── You learned: Nothing. You have working code you can&#39;t explain.
+</span></code></pre></div>
+<p>The spec forces <strong>understanding before implementation</strong>. You can't specify
+what you don't understand. This constraint is the learning mechanism.</p>
+<h3 id="sdd-vibe-coding-for-learning">SDD + Vibe Coding for Learning<a class="headerlink" href="#sdd-vibe-coding-for-learning" title="Permanent link">&para;</a></h3>
+<p>The optimal learning workflow:</p>
+<ol>
+<li><strong>Vibe code</strong> to explore: "Show me how Axum handlers work."</li>
+<li><strong>Write the spec</strong> to consolidate: Document how handlers should be
+   structured in your project.</li>
+<li><strong>Implement from spec</strong> to verify: Build the real handlers.</li>
+<li><strong>Write a tutorial</strong> to teach: Explain the patterns (like this document).</li>
+</ol>
+<p>Step 4 is optional but powerful — explaining forces the deepest understanding.
+Gorilla Coach's <code>/docs/</code> directory is the output of this step. Every tutorial
+was written by someone who first wrote the spec, then built the system, then
+explained both.</p>
+<blockquote>
+<p><strong>PP</strong>, Tip 22: <em>"Program Close to the Problem Domain."</em> Writing the spec
+IS programming close to the problem domain — you're defining the solution
+in domain terms before translating to code.</p>
+</blockquote>
+<hr />
+<h2 id="19-common-anti-patterns-and-how-to-avoid-them">19. Common Anti-Patterns and How to Avoid Them<a class="headerlink" href="#19-common-anti-patterns-and-how-to-avoid-them" title="Permanent link">&para;</a></h2>
+<h3 id="anti-pattern-1-the-novel-length-spec">Anti-Pattern 1: The Novel-Length Spec<a class="headerlink" href="#anti-pattern-1-the-novel-length-spec" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-32-1"><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>❌ 50 pages of prose describing every implementation detail
+</span><span id="__span-32-2"><a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>✅ 5 pages of structured tables, bullet points, and code signatures
+</span></code></pre></div>
+<p>If your spec is longer than the code it produces, it's too detailed. The spec
+should define <strong>what and why</strong>, not <strong>every line of code</strong>.</p>
+<h3 id="anti-pattern-2-the-spec-thats-never-updated">Anti-Pattern 2: The Spec That's Never Updated<a class="headerlink" href="#anti-pattern-2-the-spec-thats-never-updated" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a>❌ Spec says 30 fields; code has 42. Spec says Axum 0.7; code uses 0.8.
+</span><span id="__span-33-2"><a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a>✅ Spec is updated whenever a major decision changes.
+</span></code></pre></div>
+<p>A stale spec is worse than no spec — it actively misleads. Treat the spec
+like code: maintain it.</p>
+<h3 id="anti-pattern-3-specifying-what-you-dont-understand">Anti-Pattern 3: Specifying What You Don't Understand<a class="headerlink" href="#anti-pattern-3-specifying-what-you-dont-understand" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-34-1"><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>❌ &quot;Use event sourcing for the training tracker&quot;
+</span><span id="__span-34-2"><a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a>   (You&#39;ve never implemented event sourcing)
+</span><span id="__span-34-3"><a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a>✅ &quot;Store training logs as rows in training_set_logs with upsert&quot;
+</span><span id="__span-34-4"><a id="__codelineno-34-4" name="__codelineno-34-4" href="#__codelineno-34-4"></a>   (You understand relational upserts)
+</span></code></pre></div>
+<p>Don't spec technologies you haven't explored. Use vibe coding to
+experiment first, then spec what you've validated.</p>
+<h3 id="anti-pattern-4-no-anti-goals">Anti-Pattern 4: No Anti-Goals<a class="headerlink" href="#anti-pattern-4-no-anti-goals" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-35-1"><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a>❌ Spec says what to build, but not what to avoid
+</span><span id="__span-35-2"><a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a>   AI adds React, WebSockets, GraphQL &quot;for good measure&quot;
+</span><span id="__span-35-3"><a id="__codelineno-35-3" name="__codelineno-35-3" href="#__codelineno-35-3"></a>✅ Spec explicitly says &quot;Do not implement a SPA frontend. Do not add
+</span><span id="__span-35-4"><a id="__codelineno-35-4" name="__codelineno-35-4" href="#__codelineno-35-4"></a>   WebSocket support.&quot;
+</span></code></pre></div>
+<p>Anti-goals are half the value of the spec. Without them, you're specifying
+the positive space but leaving the negative space open to interpretation.</p>
+<h3 id="anti-pattern-5-skipping-the-domain-model">Anti-Pattern 5: Skipping the Domain Model<a class="headerlink" href="#anti-pattern-5-skipping-the-domain-model" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-36-1"><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a>❌ &quot;The system stores user data&quot; → AI invents 15 fields
+</span><span id="__span-36-2"><a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a>✅ 42 fields listed by name, type, and category
+</span></code></pre></div>
+<p>The domain model is the single most important section of the spec. If you
+skip it, every data-related decision becomes a coin flip.</p>
+<h3 id="anti-pattern-6-spec-without-sequence">Anti-Pattern 6: Spec Without Sequence<a class="headerlink" href="#anti-pattern-6-spec-without-sequence" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-37-1"><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a>❌ &quot;Build all 8 features&quot; → AI attempts everything, context overflows
+</span><span id="__span-37-2"><a id="__codelineno-37-2" name="__codelineno-37-2" href="#__codelineno-37-2"></a>✅ &quot;Step 1: Domain. Step 2: Repository. Step 3: Handlers.&quot;
+</span></code></pre></div>
+<p>Even if the spec is perfect, the AI needs a build order. Complex systems
+can't be built in one shot — the execution plan prevents context overflow and
+ensures each layer is tested before the next is added.</p>
+<hr />
+<h2 id="day-2-operations-maintaining-the-spec">Day-2 Operations: Maintaining the Spec<a class="headerlink" href="#day-2-operations-maintaining-the-spec" title="Permanent link">&para;</a></h2>
+<h3 id="spec-drift-detection">Spec Drift Detection<a class="headerlink" href="#spec-drift-detection" title="Permanent link">&para;</a></h3>
+<p>The spec (<code>spec.md</code>) was the source of truth during initial development. After
+the app is running, the codebase becomes the source of truth and the spec
+becomes documentation. Spec drift — where the spec says one thing and the code
+does another — is inevitable.</p>
+<p><strong>Quarterly spec review checklist:</strong></p>
+<ol>
+<li><strong>Domain model</strong>: Do the column names in <code>spec.md</code> match the current
+   <code>garmin_daily_data</code> schema? Run <code>\d+ garmin_daily_data</code> in psql and
+   compare.</li>
+<li><strong>Feature list</strong>: Are all features in the spec implemented? Are there
+   features in the code that aren't in the spec? (Training tracker, admin
+   page, and Google Sheets write-back were all added post-spec.)</li>
+<li><strong>Architecture</strong>: Does the spec's architecture diagram match <code>main.rs</code>?
+   New middleware (rate limiting, compression) may have been added.</li>
+<li><strong>Out-of-scope items</strong>: Have any "out of scope" items been implemented?
+   If so, move them into the feature list.</li>
+</ol>
+<h3 id="when-to-update-the-spec-vs-write-a-new-one">When to Update the Spec vs Write a New One<a class="headerlink" href="#when-to-update-the-spec-vs-write-a-new-one" title="Permanent link">&para;</a></h3>
+<p><strong>Update the existing spec when:</strong>
+- Adding a feature to an existing domain (new Garmin metric, new chat mode)
+- Changing implementation details (switching from Ollama to Gemini primary)
+- Adding a new handler that follows existing patterns</p>
+<p><strong>Write a new spec when:</strong>
+- Adding an entirely new domain (e.g., nutrition tracking)
+- Major architectural change (e.g., adding a mobile app)
+- Rewriting a subsystem (e.g., replacing the Garmin scraper with an official API)</p>
+<h3 id="using-the-spec-for-onboarding">Using the Spec for Onboarding<a class="headerlink" href="#using-the-spec-for-onboarding" title="Permanent link">&para;</a></h3>
+<p>If someone new needs to understand the codebase, the reading order is:</p>
+<ol>
+<li><code>spec.md</code> — what was intended (10 minutes)</li>
+<li><code>README.md</code> — how to build and run (5 minutes)</li>
+<li><code>.github/copilot-instructions.md</code> — architectural overview (5 minutes)</li>
+<li>The tutorials — deep dives by domain (as needed)</li>
+</ol>
+<p>The tutorials exist because the spec says <em>what</em> but not <em>why</em>. The tutorials
+give the <em>why</em> behind every design decision — the books referenced, the
+trade-offs considered, the alternatives rejected.</p>
+<h3 id="spec-driven-bug-reports">Spec-Driven Bug Reports<a class="headerlink" href="#spec-driven-bug-reports" title="Permanent link">&para;</a></h3>
+<p>When reporting a bug against a spec-driven codebase, include:</p>
+<ol>
+<li><strong>What the spec says</strong> (quote the relevant section)</li>
+<li><strong>What the code does</strong> (actual behavior with logs)</li>
+<li><strong>What should happen</strong> (expected behavior per spec)</li>
+</ol>
+<p>This frames the bug as a deviation from a contract, not a subjective complaint.</p>
+<hr />
+<h2 id="20-further-reading">20. Further Reading<a class="headerlink" href="#20-further-reading" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Ryan Singer — <em>Shape Up: Stop Running in Circles and Ship Work that Matters</em>: https://basecamp.com/shapeup</li>
+<li>Frederick Brooks — <em>The Mythical Man-Month</em> (Chapters 1-4 on planning)</li>
+<li>Eric Evans — <em>Domain-Driven Design</em> (Chapters 5-6 on entities and value objects)</li>
+<li>Kent Beck — <em>Test-Driven Development: By Example</em> (analogy: specs as tests)</li>
+<li>Joel Spolsky — <em>Painless Functional Specifications</em>: https://www.joelonsoftware.com/2000/10/02/painless-functional-specifications-part-1-why-bother/</li>
+<li>Gorilla Coach <code>spec.md</code>: The concrete example this tutorial references</li>
+<li>Martin Fowler — <em>Bliki: SpecificationByExample</em>: https://martinfowler.com/bliki/SpecificationByExample.html</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../ARCHITECTURE_PATTERNS_TUTORIAL/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Architecture Patterns">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Architecture Patterns
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../VAULT_ARCHITECTURE/" class="md-footer__link md-footer__link--next" aria-label="Next: Vault Architecture">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Vault Architecture
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 Mo — Built with <a href="https://squidfunk.github.io/mkdocs-material/">Material for MkDocs</a>, generated by <a href="https://claude.ai/code">Claude Code</a>
+
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/elmomk" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://www.linkedin.com/in/salomo-td-bartholomees-534009167" target="_blank" rel="noopener" title="www.linkedin.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3M135.4 416H69V202.2h66.5V416zM102.2 96a38.5 38.5 0 1 1 0 77 38.5 38.5 0 1 1 0-77m282.1 320h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.top", "navigation.footer", "navigation.indexes", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "toc.follow"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
