@@ -1,0 +1,327 @@
+/* ── Screenshot grid ──────────────────────────────────── */
+
+.md-typeset .screenshot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  justify-items: center;
+  margin: 1.5rem 0;
+}
+
+.md-typeset .screenshot-grid figure {
+  margin: 0;
+  text-align: center;
+  width: 100%;
+}
+
+.md-typeset .screenshot-grid img {
+  border-radius: 0.5rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+}
+
+.md-typeset .screenshot-grid figcaption {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--md-default-fg-color--light);
+}
+
+/* ── Per-project page accents ─────────────────────────── */
+
+/* Gorilla ecosystem — green/jungle */
+.md-content[data-md-component="content"]:has(a[href*="gorilla"]) .md-typeset h1::before,
+body[class*="gorilla"] .md-content .md-typeset h1::before { content: ""; }
+
+[href*="gorilla-coach"] ~ .md-main,
+[data-md-color-scheme="slate"] .md-nav__link--active[href*="gorilla"] ~ .md-main__inner {
+  --md-accent-fg-color: #10b981;
+}
+
+/* ── Project banner accents via page-specific classes ─── */
+
+.project-banner {
+  padding: 2rem 1.5rem;
+  border-radius: 0.5rem;
+  margin: -0.5rem -0.8rem 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.project-banner.gorilla {
+  background: linear-gradient(135deg, #064e3b 0%, #0d1117 60%, #1a1a2e 100%);
+  border: 1px solid #10b98133;
+}
+
+.project-banner.claude {
+  background: linear-gradient(135deg, #1e1b4b 0%, #0d1117 60%, #172554 100%);
+  border: 1px solid #6366f133;
+}
+
+.project-banner.cyber {
+  background: linear-gradient(135deg, #701a75 0%, #0d1117 60%, #164e63 100%);
+  border: 1px solid #d946ef33;
+}
+
+.project-banner.retro {
+  background: linear-gradient(135deg, #78350f 0%, #0d1117 60%, #7f1d1d 100%);
+  border: 1px solid #f59e0b33;
+}
+
+.project-banner h1 {
+  color: #e6edf3 !important;
+  margin: 0 !important;
+}
+
+.project-banner p {
+  color: #8b949e;
+  margin: 0.5rem 0 0;
+}
+
+.project-banner .md-button {
+  color: #e6edf3;
+  border-color: rgba(255, 255, 255, 0.2);
+  margin-top: 0.5rem;
+  display: inline-block;
+}
+
+.project-banner .md-button:hover {
+  border-color: #10b981;
+  color: #10b981;
+}
+
+/* ── Hero landing page ─────────────────────────────────── */
+
+.md-typeset .hero {
+  margin: -0.8rem -0.8rem 0;
+  padding: 6rem 2rem 8rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  background: url("../assets/hero-bg.svg") center bottom / cover no-repeat;
+  min-height: 480px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.md-typeset .hero h1 {
+  font-size: 3rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem;
+  color: #e6edf3;
+  position: relative;
+  letter-spacing: -0.02em;
+}
+
+.md-typeset .hero h1 .gradient {
+  background: linear-gradient(135deg, #10b981, #3b82f6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.md-typeset .hero .subtitle {
+  font-size: 1.35rem;
+  color: #9ca3af;
+  margin: 0 0 2.5rem;
+  position: relative;
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+.md-typeset .hero .buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  position: relative;
+}
+
+.md-typeset .hero .buttons a {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.md-typeset .hero .buttons .primary {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(16, 185, 129, 0.25);
+}
+
+.md-typeset .hero .buttons .primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(16, 185, 129, 0.35);
+}
+
+.md-typeset .hero .buttons .secondary {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #c9d1d9;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(4px);
+}
+
+.md-typeset .hero .buttons .secondary:hover {
+  border-color: #58a6ff;
+  background: rgba(88, 166, 255, 0.1);
+  color: #e6edf3;
+}
+
+/* ── Feature cards grid ───────────────────────────────── */
+
+.md-typeset .features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin: 1.5rem 0 3rem;
+}
+
+/* Force 2-col for sections with exactly 2 cards */
+.md-typeset .features-2col {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (max-width: 640px) {
+  .md-typeset .features-2col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.md-typeset .feature-card {
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  background: var(--md-code-bg-color);
+  transition: all 0.2s;
+}
+
+.md-typeset .feature-card:hover {
+  border-color: #10b981;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.md-typeset .feature-card .icon {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.md-typeset .feature-card h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.md-typeset .feature-card p {
+  margin: 0;
+  color: var(--md-default-fg-color--light);
+  font-size: 0.9rem;
+}
+
+/* ── Section titles ────────────────────────────────────── */
+
+.md-typeset .section-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin: 3.5rem 0 0.25rem;
+  padding-top: 1rem;
+}
+
+.md-typeset .section-desc {
+  color: var(--md-default-fg-color--light);
+  font-size: 1.05rem;
+  margin: 0 0 0.5rem;
+}
+
+/* ── Feature card image icon ──────────────────────────── */
+
+.md-typeset .feature-card .feature-icon-img {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+}
+
+.md-typeset .feature-card.gorilla {
+  border-color: #10b981;
+}
+
+/* ── Stack badges ─────────────────────────────────────── */
+
+.md-typeset .stack-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
+  margin: 1.5rem 0 3rem;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  background: var(--md-code-bg-color);
+}
+
+.md-typeset .stack-category h3 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--md-default-fg-color--light);
+  margin: 0 0 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.md-typeset .stack-category .badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.md-typeset .stack-category .badges img {
+  height: 24px;
+}
+
+/* ── Projects index table striping ────────────────────── */
+
+.md-typeset table:not([class]) tbody tr:nth-child(even) {
+  background: var(--md-code-bg-color);
+}
+
+.md-typeset table:not([class]) tbody tr {
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+
+/* ── Section header (unused legacy, kept for compat) ──── */
+
+.md-typeset .section-header {
+  text-align: center;
+  margin: 3rem 0 1.5rem;
+}
+
+.md-typeset .section-header h2 {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.md-typeset .section-header p {
+  color: var(--md-default-fg-color--light);
+  font-size: 1.1rem;
+}
+
+/* ── Light mode adjustments ───────────────────────────── */
+
+/* Light mode: hero always uses dark SVG bg, so text stays light */
+[data-md-color-scheme="default"] .md-typeset .hero h1 {
+  color: #e6edf3;
+}
+
+[data-md-color-scheme="default"] .md-typeset .hero .subtitle {
+  color: #8b949e;
+}
+
+[data-md-color-scheme="default"] .md-typeset .hero .buttons .secondary {
+  border-color: #30363d;
+  color: #e6edf3;
+}
