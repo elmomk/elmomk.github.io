@@ -20,12 +20,12 @@ hide:
   <div class="feature-card gorilla">
     <img src="assets/gorilla-icon.png" alt="Gorilla Coach" class="feature-icon-img">
     <h3><a href="projects/gorilla-coach/">gorilla_coach</a></h3>
-    <p>Full-stack fitness app. Periodized training (5/3/1, BBB), mesocycle management, e1RM tracking, dashboard, PWA. Rust — Leptos + Axum.</p>
+    <p>Full-stack fitness app. Periodized training (5/3/1, BBB), mesocycle management, e1RM tracking, dashboard, PWA. Rust — Dioxus + Axum.</p>
   </div>
   <div class="feature-card">
     <div class="icon">🤖</div>
     <h3><a href="projects/gorilla-mcp/">gorilla_mcp</a></h3>
-    <p>MCP server + chatbot gateway. 14 tools, 3 resources, 4 prompts — gives Claude access to training data and Garmin biometrics.</p>
+    <p>MCP server + chatbot gateway. 17 tools, 3 resources, 4 prompts — gives Claude access to training data and Garmin biometrics.</p>
   </div>
   <div class="feature-card">
     <div class="icon">⌚</div>
