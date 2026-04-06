@@ -16,38 +16,17 @@ The user photographs this screen and uploads it. The app must extract the struct
 
 ## Pipeline Architecture
 
-```
-Phone Camera / Screenshot
-         │
-         ▼
-    File Picker (JS)
-         │ base64-encoded image
-         ▼
-    dioxus.send() → Rust WASM
-         │
-         ▼
-    Server Function (HTTP POST)
-         │
-    ┌────▼─────────────────────────┐
-    │  1. Base64 decode            │
-    │  2. Write to temp file       │
-    │  3. Tesseract OCR            │
-    │     -l chi_tra+eng           │
-    │     --psm 3                  │
-    │  4. Text extraction          │
-    │     ├─ extract_all_codes()   │
-    │     ├─ extract_all_stores()  │
-    │     └─ extract_all_titles()  │
-    │  5. Package assembly         │
-    └────┬─────────────────────────┘
-         │ Vec<OcrResult>
-         ▼
-    Client receives results
-         │
-    ┌────▼─────────────────────────┐
-    │  1 result → fill form fields │
-    │  N results → auto-add all    │
-    └──────────────────────────────┘
+```mermaid
+graph TD
+  A["Phone Camera / Screenshot"] --> B["File Picker (JS)"]
+  B -->|"base64-encoded image"| C["dioxus.send() → Rust WASM"]
+  C --> D["Server Function (HTTP POST)"]
+
+  D --> E["1. Base64 decode<br/>2. Write to temp file<br/>3. Tesseract OCR (-l chi_tra+eng, --psm 3)<br/>4. Text extraction<br/>  - extract_all_codes()<br/>  - extract_all_stores()<br/>  - extract_all_titles()<br/>5. Package assembly"]
+
+  E -->|"Vec&lt;OcrResult&gt;"| F["Client receives results"]
+
+  F --> G["1 result → fill form fields<br/>N results → auto-add all"]
 ```
 
 ## Tesseract Configuration

@@ -313,24 +313,14 @@ If you do cross the threshold described in Section 5, here's the target architec
 
 ### 6a. Topology
 
-```
-┌─────────────────────────┐     ┌──────────────────────────────┐
-│  Gorilla Coach (Axum)   │────▶│  HashiCorp Vault / OpenBao   │
-│  :3000                  │     │  :8200                        │
-│                         │     │  Storage: Integrated Raft     │
-│  VAULT_ADDR=...         │     │  Auto-unseal: Transit (or KMS)│
-│  VAULT_ROLE_ID=...      │     │                               │
-│  VAULT_SECRET_ID=...    │     │  Engines:                     │
-│                         │     │   - transit/ (encrypt/decrypt) │
-│                         │     │   - secret/ (API keys, config) │
-└────────┬────────────────┘     └──────────────────────────────┘
-         │
-         ▼
-┌─────────────────────────┐
-│  PostgreSQL             │
-│  (ciphertext only —     │
-│   no MASTER_KEY needed) │
-└─────────────────────────┘
+```mermaid
+graph TD
+    Axum["<b>Gorilla Coach (Axum)</b><br/>:3000<br/><br/>VAULT_ADDR=...<br/>VAULT_ROLE_ID=...<br/>VAULT_SECRET_ID=..."]
+    Vault["<b>HashiCorp Vault / OpenBao</b><br/>:8200<br/><br/>Storage: Integrated Raft<br/>Auto-unseal: Transit (or KMS)<br/><br/>Engines:<br/>- transit/ (encrypt/decrypt)<br/>- secret/ (API keys, config)"]
+    PG["<b>PostgreSQL</b><br/>(ciphertext only —<br/>no MASTER_KEY needed)"]
+
+    Axum -->|API calls| Vault
+    Axum --> PG
 ```
 
 ### 6b. Transit Key Layout

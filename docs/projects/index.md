@@ -12,13 +12,13 @@
 
     Full-stack fitness app — periodized training (5/3/1, BBB), mesocycle management, e1RM tracking, Garmin dashboard, PWA.
 
-    :octicons-arrow-right-24: Leptos + Axum
+    :octicons-arrow-right-24: Dioxus + Axum
 
 -   :material-robot:{ .lg .middle } **[gorilla_mcp](gorilla-mcp.md)**
 
     ---
 
-    MCP server + chatbot gateway — 14 tools, 3 resources, 4 prompts. Gives Claude access to training data and Garmin biometrics.
+    MCP server + chatbot gateway — 17 tools, 3 resources, 4 prompts. Gives Claude access to training data and Garmin biometrics.
 
     :octicons-arrow-right-24: Rust + MCP Protocol
 
@@ -26,7 +26,7 @@
 
     ---
 
-    Garmin Connect API service — OAuth, parallel sync of 14 endpoints, 50+ daily metrics, webhook dispatch, Leptos dashboard.
+    Garmin Connect API service — OAuth, parallel sync of 12+ endpoints, 50+ daily metrics, webhook dispatch, Leptos dashboard.
 
     :octicons-arrow-right-24: Axum + SQLite
 

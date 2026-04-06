@@ -697,32 +697,27 @@ positional arguments.
 
 The deployment pipeline flows as follows:
 
-```
-input.css ──> Tailwind CLI ──> assets/main.css
-                                     │
-src/**/*.rs ──> dx build ──> target/dx/.../life_manager (binary)
-                              target/dx/.../public/ (WASM + assets)
-                                     │
-                              ┌──────┴──────┐
-                              │  Dockerfile  │
-                              │  - binary    │
-                              │  - public/   │
-                              │  - sw.js     │
-                              │  - manifest  │
-                              │  - icons     │
-                              │  - fonts     │
-                              └──────┬──────┘
-                                     │
-                         docker compose up -d
-                                     │
-                     ┌───────────────┴───────────────┐
-                     │ tailscale container           │
-                     │ (HTTPS termination, auth)     │
-                     │         network_mode ─────────│──> app container
-                     │                               │    (Axum server on :8080)
-                     └───────────────────────────────┘
-                                     │
-                     https://lifemanager.tail6c1af7.ts.net/
+```mermaid
+graph TD
+  css["input.css"] -->|"Tailwind CLI"| maincss["assets/main.css"]
+  rs["src/**/*.rs"] -->|"dx build"| binary["life_manager (binary)"]
+  rs -->|"dx build"| public["public/ (WASM + assets)"]
+
+  maincss --> dockerfile
+  binary --> dockerfile
+  public --> dockerfile
+
+  dockerfile["Dockerfile<br/>- binary<br/>- public/<br/>- sw.js<br/>- manifest<br/>- icons<br/>- fonts"]
+
+  dockerfile -->|"docker compose up -d"| infra
+
+  subgraph infra["Docker Compose"]
+    ts["tailscale container<br/>(HTTPS termination, auth)"]
+    app["app container<br/>(Axum server on :8080)"]
+    ts -->|"network_mode"| app
+  end
+
+  infra --> url["https://lifemanager.tail6c1af7.ts.net/"]
 ```
 
 The user's browser loads the WASM bundle, renders the UI, reads cached data from

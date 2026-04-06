@@ -146,15 +146,15 @@ In the left pane, give Claude a task:
 
 As Claude writes files, you will see entries appear in the sidebar in real time:
 
-```
- Claude Code
-  session active
-────────────────────────────────────
-  ● src/handlers.rs              +12 -3
-  ● src/models.rs                 +5 -0
-
-  2 files  +17 -3
-  g? help
+```mermaid
+block-beta
+    columns 1
+    header["Claude Code — session active"]
+    space
+    f1["● src/handlers.rs · · · · · · +12 -3"]
+    f2["● src/models.rs · · · · · · · · +5 -0"]
+    space
+    footer["2 files  +17 -3 · · · g? help"]
 ```
 
 Files are shown as a flat list with full relative paths. The most recently edited file is highlighted with italic + warning color (`ClaudeFileLatest`). The `+N/-M` stats update live as the file content changes.
@@ -179,16 +179,18 @@ If a hunk looks wrong, press `cr` while your cursor is inside it to **revert jus
 
 Open the sidebar with `<leader>cs` or `:ClaudeSidebar`. Here is what you see:
 
-```
- Claude Code                        <- header
-  session active                    <- Claude Code is running here
-────────────────────────────────────  <- separator
-  ● src/handlers.rs        +12 -3  <- live-detected, 12 added 3 deleted
-  ● src/models.rs           +5 -0  <- live-detected, 5 added
-  ○ tests/test_handlers.rs  +8 -2  <- session-detected
-
-  3 files  +25 -5                   <- summary footer
-  g? help                           <- press g? for help overlay
+```mermaid
+block-beta
+    columns 1
+    header["Claude Code · · · · · · · · · · · header"]
+    subheader["session active · · · · · · · Claude Code is running here"]
+    space
+    f1["● src/handlers.rs · · · +12 -3 · · live-detected, 12 added 3 deleted"]
+    f2["● src/models.rs · · · · · +5 -0 · · live-detected, 5 added"]
+    f3["○ tests/test_handlers.rs +8 -2 · · session-detected"]
+    space
+    footer["3 files  +25 -5 · · · · · · · summary footer"]
+    help["g? help · · · · · · · · · · · · press g? for help overlay"]
 ```
 
 ### Indicators

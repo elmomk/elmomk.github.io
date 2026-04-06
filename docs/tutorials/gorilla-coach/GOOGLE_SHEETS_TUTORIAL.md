@@ -79,31 +79,23 @@ After:   Coach writes plan → Sheet → App imports → Athlete tracks → App 
 
 ## 2. Architecture Overview
 
-```
-┌──────────────────────────────────────────────────────────┐
-│                     User (Browser)                       │
-│  [Import Sheet URL]  [Sync]  [Track Workout]  [Push]    │
-└──────────┬───────────┬───────────┬──────────────┬────────┘
-           │           │           │              │
-           ▼           ▼           ▼              ▼
-    files_import   files_sync   training    sync_day_to
-      _sheet()     _sheet()    handlers      _sheet()
-           │           │           │              │
-           │           │           │              │
-           ▼           ▼           ▼              ▼
-  ┌─────────────────────────────────────────────────────┐
-  │              sheets.rs — Core Logic                  │
-  │                                                      │
-  │  extract_sheet_id()    fetch_sheet_csv()             │
-  │  extract_gid()         fetch_sheet_tabs()            │
-  │  parse_csv_content()   get_service_account_token()   │
-  │  build_day_column_map()  sync_day_to_sheet()         │
-  │  get_cached_sa_token()   col_to_letter()             │
-  └────────────┬────────────────────────┬────────────────┘
-               │                        │
-               ▼                        ▼
-     Google Sheets API v4        Google Docs Export
-     (tabs, write-back)           (CSV download)
+```mermaid
+flowchart TD
+    USER["User (Browser)<br/>Import Sheet URL | Sync | Track Workout | Push"]
+    USER --> IMPORT["files_import_sheet()"]
+    USER --> SYNC["files_sync_sheet()"]
+    USER --> TRAIN["training handlers"]
+    USER --> PUSH["sync_day_to_sheet()"]
+
+    IMPORT --> CORE
+    SYNC --> CORE
+    TRAIN --> CORE
+    PUSH --> CORE
+
+    CORE["sheets.rs — Core Logic<br/><br/>extract_sheet_id() &nbsp; fetch_sheet_csv()<br/>extract_gid() &nbsp; fetch_sheet_tabs()<br/>parse_csv_content() &nbsp; get_service_account_token()<br/>build_day_column_map() &nbsp; sync_day_to_sheet()<br/>get_cached_sa_token() &nbsp; col_to_letter()"]
+
+    CORE --> SHEETS["Google Sheets API v4<br/>(tabs, write-back)"]
+    CORE --> DOCS["Google Docs Export<br/>(CSV download)"]
 ```
 
 Two Google APIs are used:
@@ -505,19 +497,13 @@ pub fn parse_csv_content(content: &str) -> Vec<Vec<String>> {
 
 ### State Machine Diagram
 
-```
-             ┌───────────┐
-             │ NOT_QUOTED │ ◄── start
-             └─────┬──┬──┘
-      comma: emit  │  │  quote: enter
-      newline: row │  │
-                   │  ▼
-             ┌─────┴──────┐
-             │   QUOTED    │
-             └─────┬──┬───┘
-    char: append   │  │  quote+quote: append literal "
-                   │  │  quote+other: exit to NOT_QUOTED
-                   ▼  ▼
+```mermaid
+stateDiagram-v2
+    [*] --> NOT_QUOTED
+    NOT_QUOTED --> NOT_QUOTED : comma: emit field\nnewline: emit row
+    NOT_QUOTED --> QUOTED : quote: enter
+    QUOTED --> QUOTED : char: append\nquote+quote: append literal quote
+    QUOTED --> NOT_QUOTED : quote+other: exit
 ```
 
 Why not use a CSV library? Because the `csv` crate adds a dependency for a
@@ -608,22 +594,17 @@ returning. The index is then dropped — callers only need `(title, gid)` pairs.
 
 The import flow in `files_import_sheet()` is a multi-step pipeline:
 
-```
-User pastes URL + filename
-    │
-    ├── 1. Validate: extract_sheet_id() — is this a valid Sheets URL?
-    │
-    ├── 2. Fetch: fetch_sheet_csv(sheet_id, None) — download first tab as CSV
-    │
-    ├── 3. Save: write bytes to uploads/{user_id}/{safe_name}
-    │
-    ├── 4. Metadata: save source URL to .sheets.json
-    │
-    ├── 5. Tabs: fetch_sheet_tabs() — discover all tabs
-    │   ├── Save first tab title to .tab_names.json
-    │   └── Auto-import last tab (if multi-tab sheet)
-    │
-    └── 6. Return: { ok: true, name, size, extra_files }
+```mermaid
+flowchart TD
+    START["User pastes URL + filename"] --> V["1. Validate: extract_sheet_id()<br/>Is this a valid Sheets URL?"]
+    V --> F["2. Fetch: fetch_sheet_csv(sheet_id, None)<br/>Download first tab as CSV"]
+    F --> S["3. Save: write bytes to<br/>uploads/{user_id}/{safe_name}"]
+    S --> M["4. Metadata: save source URL<br/>to .sheets.json"]
+    M --> T["5. Tabs: fetch_sheet_tabs()<br/>Discover all tabs"]
+    T --> T1["Save first tab title to .tab_names.json"]
+    T --> T2["Auto-import last tab (if multi-tab sheet)"]
+    T1 --> R["6. Return: ok, name, size, extra_files"]
+    T2 --> R
 ```
 
 ```rust
@@ -831,11 +812,12 @@ tracked against the old version of a tab.
 
 Training spreadsheets use a "wide" format where each day is a column group:
 
-```
-          │← Day 1 →│← Day 2 →│← Day 3 →│
-          │  %  Wt S R│  %  Wt S R│  %  Wt S R│
-Squat     │ 80  315 3 5│ 85  335 4 3│         │
-Bench     │ 75  225 3 8│         │ 80  245 3 5│
+```mermaid
+block-beta
+    columns 4
+    space:1 D1["Day 1<br/>% Wt S R"] D2["Day 2<br/>% Wt S R"] D3["Day 3<br/>% Wt S R"]
+    SQ["Squat"] SQ1["80 315 3 5"] SQ2["85 335 4 3"] SQ3[" "]
+    BE["Bench"] BE1["75 225 3 8"] BE2[" "] BE3["80 245 3 5"]
 ```
 
 `build_day_column_map()` produces a mapping from day label to sheet column

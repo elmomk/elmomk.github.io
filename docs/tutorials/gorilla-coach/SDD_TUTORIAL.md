@@ -165,14 +165,14 @@ resolution strategy is spelled out. The implementation is deterministic.
 Gorilla Coach's spec (`spec.md`) has 6 sections. Each serves a distinct
 purpose in reducing ambiguity:
 
-```
-spec.md
-├── 1. Context & Goal         — WHY are we building this?
-├── 2. Architecture            — HOW is it structured?
-├── 3. Domain Model            — WHAT does the data look like?
-├── 4. Core Features           — WHAT must it do?
-├── 5. Out of Scope            — WHAT must it NOT do?
-└── 6. Execution Plan          — IN WHAT ORDER?
+```mermaid
+graph LR
+    spec["spec.md"] --> s1["1. Context & Goal<br/><i>WHY are we building this?</i>"]
+    spec --> s2["2. Architecture<br/><i>HOW is it structured?</i>"]
+    spec --> s3["3. Domain Model<br/><i>WHAT does the data look like?</i>"]
+    spec --> s4["4. Core Features<br/><i>WHAT must it do?</i>"]
+    spec --> s5["5. Out of Scope<br/><i>WHAT must it NOT do?</i>"]
+    spec --> s6["6. Execution Plan<br/><i>IN WHAT ORDER?</i>"]
 ```
 
 This is not accidental. Each section eliminates a different class of
@@ -468,22 +468,20 @@ If you build the LLM adapter before the domain model, you don't have
 
 ### Cost Profiles Over Time
 
+```mermaid
+xychart-beta
+    title "SDD: Steep Upfront, Then Linear"
+    x-axis "Time" [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    y-axis "Cumulative Cost"
+    line [0, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 ```
-                    SDD
-Cumulative    ╱‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-  Cost    ___╱                    ← steep upfront (writing spec)
-         ╱                          then steady, linear progress
-        ╱
-───────╱──────────────────────────── Time →
 
-                    Vibe Coding
-Cumulative              ╱
-  Cost             ___╱
-                 ╱  ╱     ← starts free, then exponential
-            ___╱  ╱         as technical debt accumulates
-         __╱   ╱
-        ╱    ╱
-───────╱───╱──────────────────────── Time →
+```mermaid
+xychart-beta
+    title "Vibe Coding: Starts Free, Then Exponential"
+    x-axis "Time" [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    y-axis "Cumulative Cost"
+    line [0, 0.5, 1, 1.5, 2.5, 4, 6, 9, 13, 18, 25]
 ```
 
 SDD has a fixed upfront cost (writing the spec) followed by linear
@@ -855,33 +853,23 @@ vibe coding ever does.
 
 ### The Learning Loop
 
-```
-1. You don't know how Garmin SSO works
-    │
-    ├── Research: Read garth source, trace HTTP requests
-    │
-    ├── Experiment: Vibe code a minimal auth flow
-    │
-    ├── Document: Write Feature 1's auth flow in the spec
-    │   "SSO embed → signin → CSRF → credentials → MFA → ticket → OAuth1 → OAuth2"
-    │
-    ├── Implement: AI builds the full flow from the spec
-    │
-    └── Verify: You can explain every step because you wrote the spec
+```mermaid
+graph TD
+    A["You don't know how Garmin SSO works"] --> B["Research: Read garth source,<br/>trace HTTP requests"]
+    B --> C["Experiment: Vibe code a<br/>minimal auth flow"]
+    C --> D["Document: Write Feature 1's auth flow in the spec<br/><i>SSO embed → signin → CSRF → credentials<br/>→ MFA → ticket → OAuth1 → OAuth2</i>"]
+    D --> E["Implement: AI builds the<br/>full flow from the spec"]
+    E --> F["Verify: You can explain every<br/>step because you wrote the spec"]
 ```
 
 Compare with pure vibe coding:
 
-```
-1. You don't know how Garmin SSO works
-    │
-    ├── Prompt: "Write code to login to Garmin"
-    │
-    ├── AI generates: [500 lines of code]
-    │
-    ├── It works! (maybe)
-    │
-    └── You learned: Nothing. You have working code you can't explain.
+```mermaid
+graph TD
+    A["You don't know how Garmin SSO works"] --> B["Prompt: 'Write code to login to Garmin'"]
+    B --> C["AI generates: 500 lines of code"]
+    C --> D["It works! (maybe)"]
+    D --> E["You learned: Nothing.<br/>You have working code you can't explain."]
 ```
 
 The spec forces **understanding before implementation**. You can't specify

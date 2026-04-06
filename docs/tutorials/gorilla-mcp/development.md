@@ -103,28 +103,36 @@ Open `http://localhost:8080`.
 
 ## Workspace Structure
 
-```
-Cargo.toml              # Workspace root + gorilla_mcp crate
-├── src/                # gorilla_mcp source
-│   ├── main.rs         # Entry point, transport selection
-│   ├── server.rs       # MCP handler (tools, resources, prompts)
-│   ├── config.rs       # Config from env vars
-│   ├── error.rs        # McpServerError
-│   ├── cache.rs        # ResponseCache (moka)
-│   ├── format.rs       # Markdown formatters
-│   ├── clients/
-│   │   ├── mod.rs      # Shared HTTP client, check_response
-│   │   ├── coach.rs    # CoachClient
-│   │   └── garmin.rs   # GarminClient
-│   └── types/
-│       ├── mod.rs
-│       ├── coach.rs    # Coach API types
-│       └── garmin.rs   # Garmin API types
-└── gorilla_chatbot/
-    ├── Cargo.toml
-    └── src/
-        ├── main.rs     # Axum server, Claude CLI spawner
-        └── gateway.rs  # Gateway mode handler
+```mermaid
+graph LR
+  root["Cargo.toml<br/><i>Workspace root + gorilla_mcp crate</i>"]
+
+  subgraph "src/ — gorilla_mcp source"
+    main_rs["main.rs — Entry point, transport selection"]
+    server_rs["server.rs — MCP handler"]
+    config_rs["config.rs — Config from env vars"]
+    error_rs["error.rs — McpServerError"]
+    cache_rs["cache.rs — ResponseCache (moka)"]
+    format_rs["format.rs — Markdown formatters"]
+    subgraph "clients/"
+      cl_mod["mod.rs — Shared HTTP client"]
+      cl_coach["coach.rs — CoachClient"]
+      cl_garmin["garmin.rs — GarminClient"]
+    end
+    subgraph "types/"
+      ty_mod["mod.rs"]
+      ty_coach["coach.rs — Coach API types"]
+      ty_garmin["garmin.rs — Garmin API types"]
+    end
+  end
+
+  subgraph "gorilla_chatbot/"
+    cb_cargo["Cargo.toml"]
+    subgraph "src/"
+      cb_main["main.rs — Axum server, Claude CLI spawner"]
+      cb_gw["gateway.rs — Gateway mode handler"]
+    end
+  end
 ```
 
 ## Adding a New Tool

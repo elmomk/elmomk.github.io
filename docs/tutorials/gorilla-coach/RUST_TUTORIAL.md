@@ -866,9 +866,11 @@ let (btx, mut save_rx) = tokio::sync::broadcast::channel::<Result<String, String
 
 The LLM task sends tokens into the `mpsc` channel. A forwarder task reads from `mpsc` and broadcasts to multiple consumers: the SSE stream (sends to browser) and the saver (persists to database). This ensures the response is saved even if the client disconnects mid-stream.
 
-```
-LLM Task ──→ mpsc tx ──→ mpsc rx ──→ broadcast tx ──→ SSE Stream (client)
-                                                   └─→ Saver Task (database)
+```mermaid
+graph LR
+    LLM["LLM Task"] --> mpsc_tx["mpsc tx"] --> mpsc_rx["mpsc rx"] --> broadcast_tx["broadcast tx"]
+    broadcast_tx --> SSE["SSE Stream<br/>(client)"]
+    broadcast_tx --> Saver["Saver Task<br/>(database)"]
 ```
 
 This is a form of the **fan-out pattern**, implemented with zero-copy message passing.

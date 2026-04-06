@@ -341,19 +341,15 @@ async fn main() {
 
 The Miyoo Mini Plus maps its physical buttons to keyboard keys:
 
-```
-+---------------------------------------------+
-|   Miyoo Button    |   Macroquad KeyCode      |
-|-------------------|--------------------------|
-|   D-Pad Up        |   KeyCode::Up            |
-|   D-Pad Down      |   KeyCode::Down          |
-|   D-Pad Left      |   KeyCode::Left          |
-|   D-Pad Right     |   KeyCode::Right         |
-|   A Button        |   KeyCode::X             |
-|   B Button        |   KeyCode::Space         |
-|   Start           |   KeyCode::Enter         |
-+---------------------------------------------+
-```
+| Miyoo Button | Macroquad KeyCode |
+|---|---|
+| D-Pad Up | `KeyCode::Up` |
+| D-Pad Down | `KeyCode::Down` |
+| D-Pad Left | `KeyCode::Left` |
+| D-Pad Right | `KeyCode::Right` |
+| A Button | `KeyCode::X` |
+| B Button | `KeyCode::Space` |
+| Start | `KeyCode::Enter` |
 
 ### 3.4 Verify Compilation
 

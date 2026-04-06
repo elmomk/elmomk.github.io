@@ -17,7 +17,7 @@ graph TD
 
 <div class="grid cards" markdown>
 
--   :material-wrench:{ .lg .middle } **14 Tools**
+-   :material-wrench:{ .lg .middle } **17 Tools**
 
     ---
 

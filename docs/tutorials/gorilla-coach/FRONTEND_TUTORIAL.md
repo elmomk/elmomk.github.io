@@ -80,21 +80,22 @@ Dioxus solves these with a Rust-native component model that compiles to Wasm:
 
 ## 2. Architecture
 
-```
-gorilla_client (Dioxus 0.7 Wasm)
-  ├── src/main.rs           Route definitions, App shell
-  ├── src/api.rs            HTTP client (gloo_net → /api/v2/*)
-  ├── src/pages/*.rs        Page components
-  ├── src/components/       Reusable components (NavBar)
-  └── public/assets/        CSS, JS (charts.js), PWA files
+```mermaid
+graph TD
+    CLIENT["gorilla_client<br/>(Dioxus 0.7 Wasm)"]
+    CLIENT --- C1["src/main.rs — Route definitions, App shell"]
+    CLIENT --- C2["src/api.rs — HTTP client (gloo_net → /api/v2/*)"]
+    CLIENT --- C3["src/pages/*.rs — Page components"]
+    CLIENT --- C4["src/components/ — Reusable components (NavBar)"]
+    CLIENT --- C5["public/assets/ — CSS, JS (charts.js), PWA files"]
 
-gorilla_shared
-  ├── src/domain.rs         GarminDailyData, User, TrainingSetLog, etc.
-  └── src/api.rs            DashboardResponse, TrainingPlanResponse, etc.
+    SHARED["gorilla_shared"]
+    SHARED --- S1["src/domain.rs — GarminDailyData, User, TrainingSetLog, etc."]
+    SHARED --- S2["src/api.rs — DashboardResponse, TrainingPlanResponse, etc."]
 
-gorilla_server
-  ├── src/handlers/v2.rs    JSON API handlers (consumed by client)
-  └── src/main.rs           Serves Wasm bundle at /*
+    SERVER["gorilla_server"]
+    SERVER --- SV1["src/handlers/v2.rs — JSON API handlers (consumed by client)"]
+    SERVER --- SV2["src/main.rs — Serves Wasm bundle at /*"]
 ```
 
 **Data flow**: Dioxus component → `api::fetch_*()` → `GET /api/v2/*` → Axum v2

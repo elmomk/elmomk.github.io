@@ -6,7 +6,7 @@
 
 <div class="grid" markdown>
 
-:fontawesome-brands-rust: **Leptos** — Frontend (Rust WASM)
+:fontawesome-brands-rust: **Dioxus 0.7** — Frontend (Rust WASM)
 { .card }
 
 :material-server: **Axum** — Backend API

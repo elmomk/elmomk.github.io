@@ -918,13 +918,19 @@ if let Some(mode) = report_mode {
 
 If the input matches, execution never reaches `is_simple_query()` or the Gemini/Ollama path. The report generators live in `src/reports/`:
 
-```
-src/reports/
-├── mod.rs          # Re-exports: generate_sitrep, generate_debrief, generate_aar
-├── sitrep.rs       # Daily status: today vs yesterday + gatekeeper
-├── debrief.rs      # Weekly strategic review: 7-day trends + gatekeeper distribution
-├── aar.rs          # Post-workout review: activity data + training plan cross-ref + gatekeeper
-└── gatekeeper.rs   # GARE v2: dynamic CNS baseline evaluation
+```mermaid
+graph LR
+    mod["mod.rs<br/><i>Re-exports: generate_sitrep,<br/>generate_debrief, generate_aar</i>"]
+    sitrep["sitrep.rs<br/><i>Daily status: today vs yesterday<br/>+ gatekeeper</i>"]
+    debrief["debrief.rs<br/><i>Weekly strategic review: 7-day<br/>trends + gatekeeper distribution</i>"]
+    aar["aar.rs<br/><i>Post-workout review: activity data<br/>+ training plan cross-ref + gatekeeper</i>"]
+    gatekeeper["gatekeeper.rs<br/><i>GARE v2: dynamic CNS<br/>baseline evaluation</i>"]
+
+    src_reports["src/reports/"] --> mod
+    src_reports --> sitrep
+    src_reports --> debrief
+    src_reports --> aar
+    src_reports --> gatekeeper
 ```
 
 Each generator has the same signature:

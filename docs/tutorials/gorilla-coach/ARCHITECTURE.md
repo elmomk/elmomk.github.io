@@ -37,41 +37,23 @@ These are separate git repositories, each with independent Docker Compose deploy
 
 ## Component Diagram
 
-```
-                           Tailscale Mesh VPN (WireGuard)
-    +====================================================================+
-    |                                                                    |
-    |   +---------------------+         +---------------------+          |
-    |   |  gorilla-coach      |         |  garmin-api         |          |
-    |   |  (gorilla_coach)    |  HTTP   |  (garmin_api)       |          |
-    |   |                     +-------->|                     |          |
-    |   |  Axum :3000         | X-API-  |  Axum :3000         |          |
-    |   |  Dioxus Wasm PWA    |  Key    |  SQLite             |          |
-    |   |  PostgreSQL/TS      |<--------+  Webhook dispatch   |          |
-    |   |                     | webhooks|                     |          |
-    |   +--------+------------+         +----------+----------+          |
-    |            |                                 |                     |
-    |            | HTTP (SSE)                      | HTTP                |
-    |            v                                 v                     |
-    |   +---------------------+         +---------------------+          |
-    |   |  gorilla-chatbot    |         |  life_manager       |          |
-    |   |  (gorilla_mcp)      |         |  (life_manager)     |          |
-    |   |                     |         |                     |          |
-    |   |  Axum :8080         |         |  Dioxus :8080       |          |
-    |   |  Claude CLI spawn   |         |  SQLite             |          |
-    |   |  MCP tools :3000    |         |                     |          |
-    |   +---------------------+         +---------------------+          |
-    |                                                                    |
-    +====================================================================+
-                                    |
-                            Tailscale Serve
-                            (auto TLS, :443)
-                                    |
-                                    v
-                        +---------------------+
-                        |  Browser / Phone    |
-                        |  (any network)      |
-                        +---------------------+
+```mermaid
+graph TB
+    subgraph VPN["Tailscale Mesh VPN (WireGuard)"]
+        GC["gorilla-coach<br/>(gorilla_coach)<br/>Axum :3000<br/>Dioxus Wasm PWA<br/>PostgreSQL/TS"]
+        GA["garmin-api<br/>(garmin_api)<br/>Axum :3000<br/>SQLite<br/>Webhook dispatch"]
+        GM["gorilla-chatbot<br/>(gorilla_mcp)<br/>Axum :8080<br/>Claude CLI spawn<br/>MCP tools :3000"]
+        LM["life_manager<br/>(life_manager)<br/>Dioxus :8080<br/>SQLite"]
+    end
+
+    GC -->|"HTTP (X-API-Key)"| GA
+    GA -->|"webhooks"| GC
+    GC -->|"HTTP (SSE)"| GM
+    GA -->|"HTTP"| LM
+
+    TS["Tailscale Serve<br/>(auto TLS, :443)"]
+    VPN --- TS
+    TS --> B["Browser / Phone<br/>(any network)"]
 ```
 
 ### Data Flow Summary
@@ -171,27 +153,15 @@ These are separate git repositories, each with independent Docker Compose deploy
 
 All services run on the same private Tailscale mesh VPN (tailnet). Each service gets its own Tailscale hostname and automatic TLS certificate via Tailscale Serve.
 
-```
-                     Tailnet
-    +------------------------------------------+
-    |                                          |
-    |  gorilla-coach.<tailnet>.ts.net :443     |
-    |    -> tailscale sidecar -> app :3000     |
-    |       + db :5432 (shared network ns)     |
-    |                                          |
-    |  garmin-api.<tailnet>.ts.net :443        |
-    |    -> tailscale sidecar -> app :3000     |
-    |                                          |
-    |  gorilla-mcp.<tailnet>.ts.net :443       |
-    |    -> tailscale sidecar -> mcp :3000     |
-    |                                          |
-    |  gorilla-chatbot.<tailnet>.ts.net :443   |
-    |    -> tailscale sidecar -> chatbot :8080 |
-    |                                          |
-    |  lifemanager.<tailnet>.ts.net :443       |
-    |    -> tailscale sidecar -> app :8080     |
-    |                                          |
-    +------------------------------------------+
+```mermaid
+graph LR
+    subgraph Tailnet
+        GC["gorilla-coach.*.ts.net :443<br/>→ tailscale sidecar → app :3000<br/>+ db :5432 (shared network ns)"]
+        GA["garmin-api.*.ts.net :443<br/>→ tailscale sidecar → app :3000"]
+        GM["gorilla-mcp.*.ts.net :443<br/>→ tailscale sidecar → mcp :3000"]
+        CB["gorilla-chatbot.*.ts.net :443<br/>→ tailscale sidecar → chatbot :8080"]
+        LM["lifemanager.*.ts.net :443<br/>→ tailscale sidecar → app :8080"]
+    end
 ```
 
 **Key properties:**
@@ -207,11 +177,10 @@ All services run on the same private Tailscale mesh VPN (tailnet). Each service 
 
 ### Three-Crate Workspace
 
-```
-gorilla_shared (domain.rs, api.rs)
-    ^                ^
-    |                |
-gorilla_server       gorilla_client
+```mermaid
+graph BT
+    GS["gorilla_server"] --> Shared["gorilla_shared<br/>(domain.rs, api.rs)"]
+    GC["gorilla_client"] --> Shared
 ```
 
 **gorilla_shared** (`gorilla_shared/src/`):
@@ -235,67 +204,58 @@ gorilla_server       gorilla_client
 
 ### Request Flow
 
-```
-Browser (Dioxus Wasm)
-    |
-    | 1. HTTP request to /api/v2/*
-    v
-Axum Router (:3000)
-    |
-    | 2. Middleware pipeline (order matters):
-    |    - TraceLayer (request logging)
-    |    - trace_id_middleware (X-Trace-Id header)
-    |    - security_headers_middleware (CSP, HSTS, X-Frame-Options)
-    |    - csrf_middleware (Origin/Referer check on mutations)
-    |    - RateLimiter (200 req/min general, 20 req/min for chat)
-    |    - CompressionLayer (gzip/br)
-    v
-Handler function
-    |
-    | 3. AuthUser extractor (checks signed session cookie or API key)
-    |    Pattern: AuthUser { user_id, .. }: AuthUser
-    v
-Business logic
-    |
-    | 4. Repository method (raw SQL via sqlx)
-    v
-PostgreSQL (sqlx query macros)
-    |
-    | 5. Response serialized as JSON
-    v
-Browser (updates UI + IndexedDB cache)
+```mermaid
+graph TB
+    Browser["Browser (Dioxus Wasm)"] -->|"1. HTTP request to /api/v2/*"| Router["Axum Router (:3000)"]
+    Router -->|"2. Middleware pipeline"| Handler["Handler function"]
+    Handler -->|"3. AuthUser extractor<br/>(session cookie or API key)"| Logic["Business logic"]
+    Logic -->|"4. Repository method (raw SQL via sqlx)"| DB["PostgreSQL (sqlx query macros)"]
+    DB -->|"5. Response serialized as JSON"| Browser2["Browser (updates UI + IndexedDB cache)"]
+
+    subgraph Middleware["Middleware pipeline (order matters)"]
+        direction TB
+        M1["TraceLayer (request logging)"]
+        M2["trace_id_middleware (X-Trace-Id)"]
+        M3["security_headers_middleware (CSP, HSTS)"]
+        M4["csrf_middleware (Origin/Referer check)"]
+        M5["RateLimiter (200/min general, 20/min chat)"]
+        M6["CompressionLayer (gzip/br)"]
+        M1 --> M2 --> M3 --> M4 --> M5 --> M6
+    end
 ```
 
 ### Module Dependency Graph
 
-```
-main.rs
-  +-- config.rs (AppConfig::from_env)
-  +-- state.rs (AppState: repo, vault, config, cookie_key, llm, cache, metrics)
-  +-- middleware/ (csrf.rs, rate_limit.rs)
-  +-- handlers/
-  |     +-- mod.rs (AuthUser, get_session, sanitize_filename)
-  |     +-- auth.rs (login, logout, Google OAuth, dev-login)
-  |     +-- v2/
-  |     |     +-- mod.rs (dashboard with moka cache + ETag, reports dispatch)
-  |     |     +-- training.rs (plans, sets, schedule, e1RM, exercise history)
-  |     |     +-- files.rs (uploads, Google Sheets import/sync)
-  |     |     +-- settings.rs (user settings, Garmin credentials, push subscriptions)
-  |     |     +-- auto_reg.rs (auto-regulation)
-  |     |     +-- mesocycle/ (templates.rs, generator.rs, macrocycle.rs)
-  |     +-- chat.rs (SSE streaming, tool-calling loop)
-  |     +-- chat_prompt.rs (system prompt construction)
-  |     +-- chat_tools.rs (tool definitions + ToolExecutor impl)
-  |     +-- sync.rs (background Garmin sync worker, cache invalidation)
-  |     +-- calendar.rs (Google Calendar event sync)
-  |     +-- sheets.rs (Google Sheets read/write via Service Account)
-  |     +-- admin.rs (admin-only endpoints)
-  |     +-- negotiate.rs (JSON/postcard content negotiation)
-  +-- llm/ (adapter.rs, chatbot_gateway.rs, noop.rs, analyst.rs)
-  +-- reports/ (sitrep.rs, aar.rs, debrief.rs, gatekeeper.rs)
-  +-- repository/ (mod.rs, users.rs, garmin.rs, training.rs, chat.rs, auto_reg.rs, mesocycle.rs)
-  +-- vault.rs (ChaCha20Poly1305 encryption)
-  +-- util.rs (capitalize_first, build_day_label_info)
+```mermaid
+graph TB
+    Main["main.rs"] --> Config["config.rs<br/>(AppConfig::from_env)"]
+    Main --> State["state.rs<br/>(AppState: repo, vault, config,<br/>cookie_key, llm, cache, metrics)"]
+    Main --> MW["middleware/<br/>(csrf.rs, rate_limit.rs)"]
+    Main --> Handlers["handlers/"]
+    Main --> LLM["llm/<br/>(adapter.rs, chatbot_gateway.rs,<br/>noop.rs, analyst.rs)"]
+    Main --> Reports["reports/<br/>(sitrep.rs, aar.rs, debrief.rs,<br/>gatekeeper.rs)"]
+    Main --> Repo["repository/<br/>(mod.rs, users.rs, garmin.rs,<br/>training.rs, chat.rs, auto_reg.rs,<br/>mesocycle.rs)"]
+    Main --> Vault["vault.rs<br/>(ChaCha20Poly1305 encryption)"]
+    Main --> Util["util.rs<br/>(capitalize_first, build_day_label_info)"]
+
+    Handlers --> HMod["mod.rs<br/>(AuthUser, get_session,<br/>sanitize_filename)"]
+    Handlers --> Auth["auth.rs<br/>(login, logout, Google OAuth,<br/>dev-login)"]
+    Handlers --> V2["v2/"]
+    Handlers --> Chat["chat.rs<br/>(SSE streaming, tool-calling loop)"]
+    Handlers --> ChatPrompt["chat_prompt.rs<br/>(system prompt construction)"]
+    Handlers --> ChatTools["chat_tools.rs<br/>(tool definitions + ToolExecutor)"]
+    Handlers --> Sync["sync.rs<br/>(background Garmin sync,<br/>cache invalidation)"]
+    Handlers --> Cal["calendar.rs<br/>(Google Calendar event sync)"]
+    Handlers --> Sheets["sheets.rs<br/>(Google Sheets read/write)"]
+    Handlers --> Admin["admin.rs<br/>(admin-only endpoints)"]
+    Handlers --> Negotiate["negotiate.rs<br/>(JSON/postcard content negotiation)"]
+
+    V2 --> V2Mod["mod.rs<br/>(dashboard with moka cache + ETag)"]
+    V2 --> Training["training.rs<br/>(plans, sets, schedule, e1RM)"]
+    V2 --> Files["files.rs<br/>(uploads, Google Sheets import)"]
+    V2 --> Settings["settings.rs<br/>(user settings, credentials)"]
+    V2 --> AutoReg["auto_reg.rs<br/>(auto-regulation)"]
+    V2 --> Meso["mesocycle/<br/>(templates.rs, generator.rs,<br/>macrocycle.rs)"]
 ```
 
 ### Caching Strategy
@@ -324,21 +284,14 @@ main.rs
 
 ### Session-Based Auth (Browser)
 
-```
-User -> /auth/login (email) or /auth/google (OAuth)
-  |
-  v
-Server creates user in DB (if new) + generates session UUID
-  |
-  v
-Set-Cookie: session={uuid}|{provider} (signed with COOKIE_SECRET, HttpOnly, Secure)
-  |
-  v
-Every request: AuthUser extractor checks cookie via get_session()
-  - Parses signed cookie
-  - Looks up session in DB
-  - Returns AuthUser { user_id, email }
-  - Returns 401 if invalid/missing
+```mermaid
+graph TB
+    User["User"] -->|"/auth/login (email) or<br/>/auth/google (OAuth)"| Server["Server creates user in DB (if new)<br/>+ generates session UUID"]
+    Server -->|"Set-Cookie: session=uuid|provider<br/>(signed with COOKIE_SECRET, HttpOnly, Secure)"| Cookie["Cookie set in browser"]
+    Cookie --> Check["Every request: AuthUser extractor<br/>checks cookie via get_session()"]
+    Check --> Parse["Parses signed cookie"]
+    Parse --> Lookup["Looks up session in DB"]
+    Lookup --> Return["Returns AuthUser { user_id, email }<br/>or 401 if invalid/missing"]
 ```
 
 **Google OAuth flow:**
@@ -351,15 +304,13 @@ Every request: AuthUser extractor checks cookie via get_session()
 
 ### API Key Auth (Service-to-Service)
 
-```
-External service -> /api/v2/* with X-API-Key header
-  |
-  v
-AuthUser extractor:
-  1. Check session cookie (browser auth)
-  2. If no cookie, check X-API-Key header
-  3. Hash the key, look up in api_keys table
-  4. Return AuthUser { user_id, email } from associated user
+```mermaid
+graph TB
+    Ext["External service"] -->|"/api/v2/* with X-API-Key header"| Auth["AuthUser extractor"]
+    Auth --> S1["1. Check session cookie (browser auth)"]
+    S1 -->|"No cookie"| S2["2. Check X-API-Key header"]
+    S2 --> S3["3. Hash the key, look up in api_keys table"]
+    S3 --> S4["4. Return AuthUser { user_id, email }<br/>from associated user"]
 ```
 
 API keys are stored as SHA-256 hashes in the `api_keys` table. This allows gorilla_mcp and life_manager to call the gorilla_coach v2 API programmatically.
@@ -376,20 +327,21 @@ Admin endpoints (`/api/admin/*`) require both a valid session AND the user's ema
 
 Gorilla Coach does not call LLM APIs directly. Instead, it delegates to the gorilla_mcp chatbot gateway:
 
-```
-gorilla_coach                    gorilla_mcp chatbot
-+-------------------+           +-------------------+
-| chat.rs           |           | gateway handler   |
-|                   |  HTTP     |                   |
-| Build system      +---------->| Receive prompt +  |
-| prompt with       | SSE      | system instruction|
-| biometric context | stream   |                   |
-| + chat history    |<---------+ Spawn Claude CLI  |
-|                   |           | (no MCP tools)    |
-| Parse SSE events: |           |                   |
-| - status (UI)     |           | Stream response   |
-| - result (tokens) |           | back as SSE       |
-+-------------------+           +-------------------+
+```mermaid
+graph LR
+    subgraph GC["gorilla_coach"]
+        Chat["chat.rs<br/>Build system prompt with<br/>biometric context + chat history"]
+        Parse["Parse SSE events:<br/>- status (UI)<br/>- result (tokens)"]
+    end
+
+    subgraph GM["gorilla_mcp chatbot"]
+        GW["gateway handler<br/>Receive prompt +<br/>system instruction"]
+        CLI["Spawn Claude CLI<br/>(no MCP tools)<br/>Stream response back as SSE"]
+    end
+
+    Chat -->|"HTTP"| GW
+    GW --> CLI
+    CLI -->|"SSE stream"| Parse
 ```
 
 **Why this pattern?**
@@ -451,74 +403,44 @@ There is no shared message broker (Kafka, RabbitMQ, etc.). Each service owns its
 
 ### garmin_api Webhook Events
 
-```
-garmin_api (hourly sync worker)
-    |
-    | 1. Syncs 12 Garmin endpoints in parallel
-    | 2. Stores data in SQLite
-    |
-    v
-Webhook Dispatcher
-    |
-    | 3. For each registered webhook:
-    |    POST {callback_url}
-    |    Headers: X-Webhook-Signature (HMAC-SHA256)
-    |    Body: { event: "daily_data_synced", payload: { ... } }
-    |    Retries: 3x with exponential backoff
-    |
-    +---> gorilla_coach (registered consumer)
-    +---> life_manager (registered consumer)
+```mermaid
+graph TB
+    GA["garmin_api (hourly sync worker)"] -->|"1. Syncs 12 Garmin endpoints in parallel<br/>2. Stores data in SQLite"| WD["Webhook Dispatcher"]
+    WD -->|"POST callback_url<br/>X-Webhook-Signature (HMAC-SHA256)<br/>Retries: 3x exponential backoff"| GC["gorilla_coach<br/>(registered consumer)"]
+    WD -->|"POST callback_url<br/>X-Webhook-Signature (HMAC-SHA256)<br/>Retries: 3x exponential backoff"| LM["life_manager<br/>(registered consumer)"]
 ```
 
 Events: `daily_data_synced`, `sync_completed`, `sync_failed`, `credentials_updated`
 
 ### Background Sync (gorilla_coach)
 
-```
-Hourly tokio::spawn task (handlers/sync.rs)
-    |
-    | 1. Iterate all users with Garmin API configured
-    | 2. Skip users synced within rate limit window
-    | 3. Call garmin_api: GET /api/v1/users/{id}/daily?start=...&end=...
-    | 4. Upsert data into garmin_daily_data (COALESCE to preserve non-nulls)
-    | 5. Invalidate dashboard_cache for affected users
-    v
-Dashboard shows fresh data on next request
+```mermaid
+graph TB
+    Task["Hourly tokio::spawn task<br/>(handlers/sync.rs)"] --> S1["1. Iterate all users with Garmin API configured"]
+    S1 --> S2["2. Skip users synced within rate limit window"]
+    S2 --> S3["3. Call garmin_api:<br/>GET /api/v1/users/{id}/daily?start=...&end=..."]
+    S3 --> S4["4. Upsert data into garmin_daily_data<br/>(COALESCE to preserve non-nulls)"]
+    S4 --> S5["5. Invalidate dashboard_cache for affected users"]
+    S5 --> Dash["Dashboard shows fresh data on next request"]
 ```
 
 ### Client-Side Cache-First Loading
 
-```
-Page mount (e.g., Training page)
-    |
-    | 1. Read from IndexedDB (instant render)
-    v
-Show cached data in UI
-    |
-    | 2. Fetch from /api/v2/training (network request)
-    v
-Update UI with fresh data + write to IndexedDB
+```mermaid
+graph TB
+    Mount["Page mount (e.g., Training page)"] -->|"1. Read from IndexedDB (instant render)"| Cached["Show cached data in UI"]
+    Cached -->|"2. Fetch from /api/v2/training (network request)"| Fresh["Update UI with fresh data + write to IndexedDB"]
 ```
 
 This pattern is used for training, dashboard, and settings pages. It eliminates loading spinners on repeat visits and provides offline capability.
 
 ### Schedule Change -> Calendar Sync
 
-```
-User changes training schedule
-    |
-    | POST /api/v2/training/schedule/init or /shift
-    v
-Server computes 10-day microcycle projection
-    |
-    | User clicks "Sync to Calendar"
-    | POST /api/v2/training/schedule/sync-calendar
-    v
-Server uses Google Service Account (JWT/RS256)
-    |
-    | Google Calendar API v3
-    v
-All-day events created/updated on user's calendar
+```mermaid
+graph TB
+    User["User changes training schedule"] -->|"POST /api/v2/training/schedule/init or /shift"| Server["Server computes 10-day microcycle projection"]
+    Server -->|"User clicks 'Sync to Calendar'<br/>POST /api/v2/training/schedule/sync-calendar"| SA["Server uses Google Service Account (JWT/RS256)"]
+    SA -->|"Google Calendar API v3"| Cal["All-day events created/updated<br/>on user's calendar"]
 ```
 
 ---
@@ -531,78 +453,86 @@ The database uses PostgreSQL 16 with the TimescaleDB extension. Migrations live 
 
 **Core tables:**
 
-```
-users
-  +-- id (UUID PK)
-  +-- email (UNIQUE)
-  +-- created_at
+```mermaid
+erDiagram
+    users {
+        UUID id PK
+        TEXT email UK
+        TIMESTAMPTZ created_at
+    }
 
-user_settings
-  +-- user_id (FK -> users, PK)
-  +-- garmin_username
-  +-- encrypted_garmin_password (ChaCha20)
-  +-- nonce
-  +-- last_sync_at
-  +-- body_fat_pct, google_refresh_token, etc.
+    user_settings {
+        UUID user_id PK,FK
+        TEXT garmin_username
+        TEXT encrypted_garmin_password
+        TEXT nonce
+        TIMESTAMPTZ last_sync_at
+        REAL body_fat_pct
+    }
 
-garmin_daily_data
-  +-- user_id (FK -> users)
-  +-- date (DATE)
-  +-- 42+ metric columns (steps, HR, HRV, sleep, stress, body battery, etc.)
-  +-- activities_json (TEXT, JSON array of activities)
-  +-- synced_at
-  +-- PK: (user_id, date)
+    garmin_daily_data {
+        UUID user_id FK
+        DATE date
+        TEXT activities_json
+        TIMESTAMPTZ synced_at
+    }
 
-daily_logs  [TimescaleDB hypertable]
-  +-- user_id (FK -> users)
-  +-- time (TIMESTAMPTZ)
-  +-- hrv, rhr, sleep_score, training_load, notes
+    daily_logs {
+        UUID user_id FK
+        TIMESTAMPTZ time
+        REAL hrv
+        INT rhr
+        REAL sleep_score
+    }
 
-training_set_logs
-  +-- user_id, plan_file, day_label, exercise_name, set_number (composite PK)
-  +-- actual_weight, actual_reps, technique
-  +-- logged_at
+    training_set_logs {
+        UUID user_id FK
+        TEXT plan_file
+        TEXT day_label
+        TEXT exercise_name
+        INT set_number
+        REAL actual_weight
+        INT actual_reps
+    }
 
-training_day_done
-  +-- user_id, plan_file, day_label (composite PK)
-  +-- done (BOOLEAN)
-  +-- done_at
+    training_day_done {
+        UUID user_id FK
+        TEXT plan_file
+        TEXT day_label
+        BOOLEAN done
+    }
 
-mesocycle_templates
-  +-- id (BIGSERIAL PK)
-  +-- user_id, name (UNIQUE together)
-  +-- template_type (strength | hypertrophy | warrior)
-  +-- num_cycles, days_json
-  +-- cycle_percentages, cycle_reps (5/3/1 per-cycle config)
+    mesocycle_templates {
+        BIGSERIAL id PK
+        UUID user_id FK
+        TEXT name
+        TEXT template_type
+        INT num_cycles
+    }
 
-macrocycles
-  +-- id (BIGSERIAL PK)
-  +-- user_id, name (UNIQUE together)
+    macrocycles {
+        BIGSERIAL id PK
+        UUID user_id FK
+        TEXT name
+    }
 
-macrocycle_slots
-  +-- id (BIGSERIAL PK)
-  +-- macrocycle_id (FK -> macrocycles, CASCADE)
-  +-- slot_order, template_id (FK -> mesocycle_templates, RESTRICT)
-  +-- status (pending | active | completed)
-  +-- generated_file, started_at, completed_at
+    macrocycle_slots {
+        BIGSERIAL id PK
+        BIGINT macrocycle_id FK
+        INT slot_order
+        BIGINT template_id FK
+        TEXT status
+    }
 
-training_plan_exercises
-  +-- Per-exercise configuration within generated plans
-
-e1rm_history
-  +-- Estimated 1-rep max tracking for primary lifts
-
-chat_messages
-  +-- user_id, role, content, time
-
-api_keys
-  +-- key_hash (SHA-256), user_id, label, last_used_at
-
-push_subscriptions
-  +-- Web push notification endpoints
-
-auto_regulation_logs
-  +-- Daily readiness tracking
+    users ||--o| user_settings : "has"
+    users ||--o{ garmin_daily_data : "has"
+    users ||--o{ daily_logs : "has"
+    users ||--o{ training_set_logs : "logs"
+    users ||--o{ training_day_done : "tracks"
+    users ||--o{ mesocycle_templates : "creates"
+    users ||--o{ macrocycles : "creates"
+    macrocycles ||--o{ macrocycle_slots : "contains"
+    mesocycle_templates ||--o{ macrocycle_slots : "referenced by"
 ```
 
 ### TimescaleDB Usage
@@ -633,16 +563,11 @@ The `garmin_daily_data` table is a regular PostgreSQL table (not a hypertable) s
 
 Sensitive data is encrypted using ChaCha20Poly1305 (AEAD cipher) via `vault.rs`:
 
-```
-MASTER_KEY (env var, >= 32 bytes)
-    |
-    v
-First 32 bytes -> ChaCha20Poly1305 key
-    |
-    +-- encrypt(plaintext) -> (ciphertext_b64, nonce_b64)
-    |   12-byte random nonce per encryption
-    |
-    +-- decrypt(ciphertext_b64, nonce_b64) -> plaintext
+```mermaid
+graph TB
+    MK["MASTER_KEY (env var, ≥ 32 bytes)"] --> Key["First 32 bytes → ChaCha20Poly1305 key"]
+    Key --> Enc["encrypt(plaintext) → (ciphertext_b64, nonce_b64)<br/>12-byte random nonce per encryption"]
+    Key --> Dec["decrypt(ciphertext_b64, nonce_b64) → plaintext"]
 ```
 
 Encrypted fields:
@@ -707,63 +632,42 @@ This is the key deployment trick. By setting `network_mode: service:tailscale`, 
 
 ### gorilla_coach Specific Deployment
 
-```
-+-- tailscale (sidecar, HTTPS :443)
-|     hostname: gorilla-coach
-|     ts-serve.json: proxy :443 -> :3000
-|
-+-- app (gorilla_coach binary, :3000)
-|     network_mode: service:tailscale
-|     volumes: app-data, uploads, sheets key
-|     DATABASE_URL -> localhost:5432 (same network ns as db)
-|
-+-- db (timescale/timescaledb:latest-pg16, :5432)
-      network_mode: service:tailscale
-      volumes: gorilla-db-data
+```mermaid
+graph TB
+    subgraph Docker["gorilla_coach Docker Compose"]
+        TS["tailscale (sidecar, HTTPS :443)<br/>hostname: gorilla-coach<br/>ts-serve.json: proxy :443 → :3000"]
+        App["app (gorilla_coach binary, :3000)<br/>network_mode: service:tailscale<br/>volumes: app-data, uploads, sheets key"]
+        DB["db (timescaledb:latest-pg16, :5432)<br/>network_mode: service:tailscale<br/>volumes: gorilla-db-data"]
+    end
+
+    TS -->|":443 → :3000"| App
+    App -->|"localhost:5432<br/>(same network ns)"| DB
 ```
 
 ### Build Pipeline
 
 gorilla_coach uses a local-build + thin-runtime-image pattern:
 
-```
-1. ./scripts/build.sh
-   - Syncs CSS (gorilla_client/assets/main.css)
-   - Bumps Service Worker version in sw.js
-   - cargo build -p gorilla_server --release
-   - cd gorilla_client && dx build --release
-
-2. Dockerfile (debian:trixie-slim)
-   - COPY target/release/gorilla_coach .
-   - COPY target/dx/gorilla_client/release/web/public ./target/dx/...
-   - Non-root user (gorilla, uid 1000)
-   - ~7 seconds to build Docker image
-
-3. ./scripts/deploy.sh up
-   - docker compose up -d --build
+```mermaid
+graph LR
+    Build["1. ./scripts/build.sh<br/>Sync CSS, bump SW version<br/>cargo build --release<br/>dx build --release"] --> Docker["2. Dockerfile (debian:trixie-slim)<br/>COPY binary + static assets<br/>Non-root user (gorilla, uid 1000)<br/>~7s to build image"]
+    Docker --> Deploy["3. ./scripts/deploy.sh up<br/>docker compose up -d --build"]
 ```
 
 This avoids a multi-stage Docker build (which would require Rust + dioxus-cli in the image) and keeps the runtime image minimal.
 
 ### Startup Ordering
 
-```
-tailscale (starts first, healthcheck: tailscale status --json)
-    |
-    | condition: service_healthy (wait for Tailscale to connect)
-    v
-db (starts after tailscale)
-    |
-    | condition: service_started
-    v
-app (starts last)
-    |
-    | 1. AppConfig::from_env() -- parse all env vars
-    | 2. Repository::new() -- connect to PostgreSQL
-    | 3. Repository::migrate() -- run pending SQL migrations
-    | 4. Build AppState (vault, cache, LLM adapter, metrics)
-    | 5. Spawn background sync worker
-    | 6. Bind to 0.0.0.0:3000
+```mermaid
+graph TB
+    TS["tailscale<br/>(starts first, healthcheck:<br/>tailscale status --json)"] -->|"condition: service_healthy"| DB["db (starts after tailscale)"]
+    DB -->|"condition: service_started"| App["app (starts last)"]
+    App --> S1["1. AppConfig::from_env()"]
+    S1 --> S2["2. Repository::new() — connect to PostgreSQL"]
+    S2 --> S3["3. Repository::migrate() — run pending SQL migrations"]
+    S3 --> S4["4. Build AppState (vault, cache, LLM adapter, metrics)"]
+    S4 --> S5["5. Spawn background sync worker"]
+    S5 --> S6["6. Bind to 0.0.0.0:3000"]
 ```
 
 ---
@@ -772,37 +676,37 @@ app (starts last)
 
 ### Defense in Depth
 
-```
-Internet
-    |
-    X  No public access (Tailscale-only)
-    |
-Tailscale mesh VPN (WireGuard encryption)
-    |
-    | ACLs control device/user access
-    v
-Tailscale Serve (auto TLS, HSTS)
-    |
-    v
-Axum middleware stack:
-    1. CSRF (Origin/Referer validation on mutations)
-    2. Rate limiting (200 req/min general, 20 req/min chat)
-    3. Security headers (CSP, X-Frame-Options, X-Content-Type-Options)
-    4. HSTS (max-age=63072000)
-    5. Trace ID (X-Trace-Id for request tracking)
-    |
-    v
-Auth layer:
-    - Signed session cookies (HMAC-SHA256 derived key)
-    - API key auth (SHA-256 hashed, constant-time comparison)
-    - AuthUser extractor on every protected endpoint
-    |
-    v
-Data layer:
-    - ChaCha20Poly1305 encryption for credentials at rest
-    - SQL parameterization (sqlx) prevents injection
-    - File upload sanitization (whitelist: [a-zA-Z0-9._-])
-    - 20MB upload limit, 1MB JSON body limit
+```mermaid
+graph TB
+    Internet["Internet"] -->|"✗ No public access (Tailscale-only)"| VPN["Tailscale mesh VPN<br/>(WireGuard encryption)"]
+    VPN -->|"ACLs control device/user access"| Serve["Tailscale Serve<br/>(auto TLS, HSTS)"]
+    Serve --> MW["Axum middleware stack"]
+    MW --> Auth["Auth layer"]
+    Auth --> Data["Data layer"]
+
+    subgraph MWStack["Middleware"]
+        direction TB
+        C1["CSRF (Origin/Referer validation)"]
+        C2["Rate limiting (200/min, 20/min chat)"]
+        C3["Security headers (CSP, X-Frame-Options)"]
+        C4["HSTS (max-age=63072000)"]
+        C5["Trace ID (X-Trace-Id)"]
+    end
+
+    subgraph AuthStack["Authentication"]
+        direction TB
+        A1["Signed session cookies (HMAC-SHA256)"]
+        A2["API key auth (SHA-256, constant-time)"]
+        A3["AuthUser extractor on every endpoint"]
+    end
+
+    subgraph DataStack["Data Protection"]
+        direction TB
+        D1["ChaCha20Poly1305 encryption at rest"]
+        D2["SQL parameterization (sqlx)"]
+        D3["File upload sanitization"]
+        D4["20MB upload / 1MB JSON limit"]
+    end
 ```
 
 ### Content Security Policy

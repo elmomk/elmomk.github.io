@@ -6,30 +6,35 @@
 
 ## Component Hierarchy
 
-```
-AppLayout
-├── Header (route-aware title, neon-cyan glow)
-├── Outlet (page content)
-│   ├── ChecklistPage (Todos, Groceries)
-│   │   ├── ErrorBanner
-│   │   ├── Form (text input + date + ADD button)
-│   │   ├── QuickAdd (dynamic chips with delete badges)
-│   │   └── SwipeItem[] (per list item)
-│   ├── Shopee
-│   │   ├── ErrorBanner
-│   │   ├── Form (title + store + code + ShopeeOcr)
-│   │   ├── Store chips
-│   │   └── SwipeItem[] (per package)
-│   ├── Watchlist
-│   │   ├── ErrorBanner
-│   │   ├── Form (text + media type tabs)
-│   │   └── SwipeItem[] (per watch item)
-│   └── Period
-│       ├── ErrorBanner
-│       ├── Prediction card
-│       ├── Log form (dates + symptom chips)
-│       └── SwipeItem[] (per cycle)
-└── TabBar (5 icon links)
+```mermaid
+graph TD
+  AppLayout --> Header["Header<br/>(route-aware title, neon-cyan glow)"]
+  AppLayout --> Outlet["Outlet (page content)"]
+  AppLayout --> TabBar["TabBar (5 icon links)"]
+
+  Outlet --> Checklist["ChecklistPage<br/>(Todos, Groceries)"]
+  Outlet --> Shopee
+  Outlet --> Watchlist
+  Outlet --> Period
+
+  Checklist --> CL_err["ErrorBanner"]
+  Checklist --> CL_form["Form<br/>(text input + date + ADD button)"]
+  Checklist --> CL_qa["QuickAdd<br/>(dynamic chips with delete badges)"]
+  Checklist --> CL_sw["SwipeItem[]<br/>(per list item)"]
+
+  Shopee --> SH_err["ErrorBanner"]
+  Shopee --> SH_form["Form<br/>(title + store + code + ShopeeOcr)"]
+  Shopee --> SH_chips["Store chips"]
+  Shopee --> SH_sw["SwipeItem[]<br/>(per package)"]
+
+  Watchlist --> WL_err["ErrorBanner"]
+  Watchlist --> WL_form["Form<br/>(text + media type tabs)"]
+  Watchlist --> WL_sw["SwipeItem[]<br/>(per watch item)"]
+
+  Period --> PD_err["ErrorBanner"]
+  Period --> PD_pred["Prediction card"]
+  Period --> PD_form["Log form<br/>(dates + symptom chips)"]
+  Period --> PD_sw["SwipeItem[]<br/>(per cycle)"]
 ```
 
 ## SwipeItem: The Gesture Engine

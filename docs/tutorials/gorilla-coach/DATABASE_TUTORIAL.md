@@ -1920,52 +1920,68 @@ this is fine. Users who delete data actually want it gone.
 
 ## 17. The Full Entity-Relationship Model
 
-```
-┌──────────────────────┐
-│       users           │
-│ ──────────────────── │
-│ PK  id          UUID  │
-│ UQ  email       TEXT  │
-│     created_at  TSTZ  │
-└──────────┬───────────┘
-           │ 1
-           │
-     ┌─────┴──────┬───────────────┬──────────────────┐
-     │ 1          │ *             │ *                 │ *
-     ▼            ▼               ▼                   ▼
-┌──────────┐ ┌──────────┐ ┌──────────────┐ ┌────────────────┐
-│user_     │ │chat_     │ │garmin_daily_ │ │manual_body_    │
-│settings  │ │messages  │ │data          │ │metrics         │
-│──────────│ │──────────│ │──────────────│ │────────────────│
-│PK/FK     │ │FK user_id│ │PK user_id ◄─┤ │PK user_id ◄───┤
-│ user_id  │ │   role   │ │PK date      │ │PK date         │
-│ garmin_  │ │   content│ │   steps     │ │   body_fat_pct │
-│ username │ │   time   │ │   hrv_last_ │ │   created_at   │
-│ enc_pass │ │          │ │   night     │ └────────────────┘
-│ nonce    │ │          │ │   sleep_    │
-│ oauth_   │ │          │ │   score     │
-│ token    │ │          │ │   ...40 cols│       ┌──────────────────┐
-│ google_  │ │          │ │   synced_at │       │training_set_logs │
-│ refresh  │ │          │ └──────────────┘       │──────────────────│
-│ last_    │ │          │                        │PK user_id ◄─────┤
-│ sync_at  │ │          │                        │PK plan_file     │
-│ mfa_*    │ │          │                        │PK day_label     │
-└──────────┘ └──────────┘                        │PK exercise_name │
-                                                 │PK set_number    │
-                                                 │   actual_weight │
-                                                 │   actual_reps   │
-                                                 │   technique     │
-                                                 │   logged_at     │
-                                                 └──────────────────┘
+```mermaid
+erDiagram
+    users {
+        UUID id PK
+        TEXT email UK
+        TSTZ created_at
+    }
+    user_settings {
+        UUID user_id PK, FK
+        TEXT garmin_username
+        BYTEA enc_pass
+        BYTEA nonce
+        TEXT oauth_token
+        TEXT google_refresh
+        TSTZ last_sync_at
+        TEXT mfa_star
+    }
+    chat_messages {
+        UUID user_id FK
+        TEXT role
+        TEXT content
+        TSTZ time
+    }
+    garmin_daily_data {
+        UUID user_id PK, FK
+        DATE date PK
+        INT steps
+        FLOAT hrv_last_night
+        FLOAT sleep_score
+        TEXT "...40 cols"
+        TSTZ synced_at
+    }
+    manual_body_metrics {
+        UUID user_id PK, FK
+        DATE date PK
+        FLOAT body_fat_pct
+        TSTZ created_at
+    }
+    training_set_logs {
+        UUID user_id PK, FK
+        TEXT plan_file PK
+        TEXT day_label PK
+        TEXT exercise_name PK
+        INT set_number PK
+        FLOAT actual_weight
+        INT actual_reps
+        TEXT technique
+        TSTZ logged_at
+    }
+    training_day_done {
+        UUID user_id PK, FK
+        TEXT plan_file PK
+        TEXT day_label PK
+        TSTZ marked_at
+    }
 
-                                                 ┌──────────────────┐
-                                                 │training_day_done │
-                                                 │──────────────────│
-                                                 │PK user_id ◄─────┤
-                                                 │PK plan_file     │
-                                                 │PK day_label     │
-                                                 │   marked_at     │
-                                                 └──────────────────┘
+    users ||--|| user_settings : "1:1 shared PK"
+    users ||--o{ chat_messages : "1:many"
+    users ||--o{ garmin_daily_data : "1:many"
+    users ||--o{ manual_body_metrics : "1:many"
+    users ||--o{ training_set_logs : "1:many"
+    users ||--o{ training_day_done : "1:many"
 ```
 
 **Relationships:**

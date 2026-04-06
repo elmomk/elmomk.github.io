@@ -6,16 +6,16 @@
 
 ## The Build Pipeline
 
-```
-Source Code
-    │
-    ├─ input.css ──────────────────▶ Tailwind CLI ──▶ assets/main.css
-    │
-    ├─ src/ ───────────────────────▶ dx build ──────▶ target/dx/.../life_manager (server binary)
-    │                                                  target/dx/.../public/ (WASM + assets)
-    │
-    └─ assets/ (sw.js, manifest,   ▶ Docker COPY ──▶ Container image
-       icons, fonts)
+```mermaid
+graph LR
+  src["Source Code"]
+  css["input.css"] -->|"Tailwind CLI"| maincss["assets/main.css"]
+  code["src/"] -->|"dx build"| binary["life_manager<br/>(server binary)"]
+  code -->|"dx build"| public["public/<br/>(WASM + assets)"]
+  assets["assets/<br/>(sw.js, manifest,<br/>icons, fonts)"] -->|"Docker COPY"| image["Container image"]
+  binary -->|"Docker COPY"| image
+  public -->|"Docker COPY"| image
+  maincss -->|"Docker COPY"| image
 ```
 
 ### Why Local Build + Docker Copy?

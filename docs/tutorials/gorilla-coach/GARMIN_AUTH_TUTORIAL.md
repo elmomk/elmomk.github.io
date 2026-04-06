@@ -89,45 +89,26 @@ MFA support, token refresh, error classification, and parallel API fetching.
 
 ## 2. The Authentication Chain: Bird's-Eye View
 
-```
-Step 1: GET /sso/embed
-    │ → Garmin sets session cookies in the cookie jar
-    │
-Step 2: GET /sso/signin
-    │ → Returns HTML with a hidden CSRF token
-    │ → Parse: name="_csrf" value="TOKEN"
-    │
-Step 3: POST /sso/signin
-    │ → Body: username + password + _csrf + embed=true
-    │ → Returns HTML — check the <title> tag
-    │
-    ├── Title = "Success" → Step 5 (extract ticket)
-    ├── Title = MFA-related → Step 4 (MFA challenge)
-    └── Title = anything else → Login failed
-    │
-Step 4 (if MFA): POST /sso/verifyMFA/loginEnterMfaCode
-    │ → Body: mfa-code + _csrf + embed=true
-    │ → Returns HTML — check <title> = "Success"
-    │
-Step 5: Extract ticket from HTML
-    │ → Parse: embed?ticket=ST-XXXXXX-XXXXX
-    │
-Step 6: GET OAuth consumer keys (cached, from S3)
-    │ → Returns: consumer_key + consumer_secret
-    │
-Step 7: GET /oauth-service/oauth/preauthorized
-    │ → Signed with OAuth1 (consumer-only, no token)
-    │ → Query: ticket=ST-XXX + login-url + accepts-mfa-tokens
-    │ → Returns: oauth_token + oauth_token_secret (+ optional mfa_token)
-    │
-Step 8: POST /oauth-service/oauth/exchange/user/2.0
-    │ → Signed with OAuth1 (consumer + oauth1_token)
-    │ → Body: optional mfa_token
-    │ → Returns JSON: access_token, refresh_token, expires_in, token_type
-    │
-    └── GarminSession stored (encrypted) in database
-        │
-        └── Use access_token as Bearer token for all API calls
+```mermaid
+flowchart TD
+    S1["Step 1: GET /sso/embed<br/>Garmin sets session cookies in cookie jar"]
+    S2["Step 2: GET /sso/signin<br/>Returns HTML with hidden CSRF token<br/>Parse: name=&quot;_csrf&quot; value=&quot;TOKEN&quot;"]
+    S3["Step 3: POST /sso/signin<br/>Body: username + password + _csrf + embed=true<br/>Returns HTML — check the title tag"]
+    S4["Step 4: POST /sso/verifyMFA/loginEnterMfaCode<br/>Body: mfa-code + _csrf + embed=true<br/>Check title = Success"]
+    S5["Step 5: Extract ticket from HTML<br/>Parse: embed?ticket=ST-XXXXXX-XXXXX"]
+    S6["Step 6: GET OAuth consumer keys (cached, from S3)<br/>Returns: consumer_key + consumer_secret"]
+    S7["Step 7: GET /oauth-service/oauth/preauthorized<br/>Signed with OAuth1 (consumer-only, no token)<br/>Returns: oauth_token + oauth_token_secret"]
+    S8["Step 8: POST /oauth-service/oauth/exchange/user/2.0<br/>Signed with OAuth1 (consumer + oauth1_token)<br/>Returns: access_token, refresh_token, expires_in"]
+    STORE["GarminSession stored (encrypted) in database"]
+    USE["Use access_token as Bearer token for all API calls"]
+    FAIL["Login failed"]
+
+    S1 --> S2 --> S3
+    S3 -->|"Title = Success"| S5
+    S3 -->|"Title = MFA-related"| S4
+    S3 -->|"Title = anything else"| FAIL
+    S4 --> S5
+    S5 --> S6 --> S7 --> S8 --> STORE --> USE
 ```
 
 The entire flow takes 5-8 HTTP requests (depending on MFA) and produces an
@@ -724,19 +705,16 @@ pub async fn refresh_oauth2_token(
 
 The sync worker handles token failures with a cascading fallback:
 
-```
-API call returns 401
-    │
-    ├─ Has OAuth1 credentials?
-    │   ├─ Yes → refresh_oauth2_token()
-    │   │   ├─ Success → retry API call with new token
-    │   │   └─ Failure → attempt re-login
-    │   └─ No (legacy session) → attempt re-login
-    │
-    └─ Re-login with stored email + password
-        ├─ Success → update stored session
-        ├─ MFA Required → add to mfa_blocked_users, skip
-        └─ Failure → log warning, skip user
+```mermaid
+flowchart TD
+    A["API call returns 401"] --> B{"Has OAuth1 credentials?"}
+    B -->|Yes| C["refresh_oauth2_token()"]
+    C -->|Success| D["Retry API call with new token"]
+    C -->|Failure| E["Attempt re-login"]
+    B -->|"No (legacy session)"| E
+    E -->|Success| F["Update stored session"]
+    E -->|MFA Required| G["Add to mfa_blocked_users, skip"]
+    E -->|Failure| H["Log warning, skip user"]
 ```
 
 ---
@@ -885,21 +863,19 @@ immediately.
 The activity list (endpoint 12) returns basic summary data. For each activity,
 a sub-request to `/activity-service/activity/{id}` fetches the full detail:
 
-```
-Activity list (parallel with other endpoints)
-    │
-    └── For each activity:
-        │
-        ├── GET /activity-service/activity/{id} (sequential)
-        │   └── Common fields: work/rest time, exercise load, calories, sweat loss
-        │   └── Strength fields: total sets/reps, volume, per-exercise breakdown
-        │   └── HR zones (if inline)
-        │
-        ├── GET /activity-service/activity/{id}/exerciseSets (conditional)
-        │   └── Only if strength AND no sets found in detail response
-        │
-        └── GET /activity-service/activity/{id}/heartRateZones (conditional)
-            └── Only if no HR zones inline AND not strength (always 404s for strength)
+```mermaid
+flowchart TD
+    LIST["Activity list<br/>(parallel with other endpoints)"] --> LOOP["For each activity"]
+    LOOP --> DETAIL["GET /activity-service/activity/{id}<br/>(sequential)"]
+    DETAIL --> COMMON["Common fields: work/rest time,<br/>exercise load, calories, sweat loss"]
+    DETAIL --> STRENGTH["Strength fields: total sets/reps,<br/>volume, per-exercise breakdown"]
+    DETAIL --> HRINLINE["HR zones (if inline)"]
+
+    LOOP --> SETS{"Strength AND no sets<br/>in detail response?"}
+    SETS -->|Yes| EXSETS["GET /activity-service/activity/{id}/exerciseSets"]
+
+    LOOP --> HRZONES{"No HR zones inline<br/>AND not strength?"}
+    HRZONES -->|Yes| HRZREQ["GET /activity-service/activity/{id}/heartRateZones"]
 ```
 
 Sub-requests run **sequentially** (not in parallel) because:
@@ -1089,10 +1065,9 @@ what they mean:
 
 The Garmin session has two layers of tokens with different lifespans:
 
-```
-OAuth1 credentials (~1 year validity)
-  └─ Used to refresh → OAuth2 access token (~1 hour validity)
-                         └─ Used for API calls
+```mermaid
+flowchart LR
+    O1["OAuth1 credentials<br/>(~1 year validity)"] -->|"Used to refresh"| O2["OAuth2 access token<br/>(~1 hour validity)"] -->|"Used for"| API["API calls"]
 ```
 
 **Healthy flow**: OAuth2 expires → auto-refreshed via OAuth1 → API calls resume.

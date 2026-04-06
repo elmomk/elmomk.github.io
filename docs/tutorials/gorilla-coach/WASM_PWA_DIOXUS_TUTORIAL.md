@@ -107,18 +107,17 @@ grows on demand via `memory.grow`. Rust's allocator (`dlmalloc` or
 `wee_alloc`) manages this linear memory the same way `malloc/free`
 manage the heap on a native target.
 
-```
-┌─────────────────────────────────────────────────────┐
-│                  Wasm Linear Memory                  │
-│  ┌──────┐ ┌──────────────┐ ┌──────────────────────┐ │
-│  │ Stack │ │ Static Data  │ │        Heap          │ │
-│  │ ↓     │ │ (strings,    │ │ (Box, Vec, String,   │ │
-│  │       │ │  vtables)    │ │  HashMap, ...)       │ │
-│  └──────┘ └──────────────┘ └──────────────────────┘ │
-└─────────────────────────────────────────────────────┘
-         ↑ Accessible to Wasm
-─────────┼─────────────────────────────────────
-         ↓ NOT accessible — browser/OS memory
+```mermaid
+block-beta
+    columns 3
+    block:memory:3
+        columns 3
+        Stack["Stack ↓"]
+        Static["Static Data<br/>(strings, vtables)"]
+        Heap["Heap<br/>(Box, Vec, String,<br/>HashMap, ...)"]
+    end
+    space:3
+    boundary["── Accessible to Wasm ↑ / NOT accessible ↓ — browser/OS memory ──"]:3
 ```
 
 JavaScript can view this memory as a `Uint8Array` via
@@ -175,20 +174,20 @@ Under the hood, this runs:
 
 The output lands in:
 
-```
-target/dx/gorilla_client/release/web/public/
-├── index.html          ← Dioxus-generated, patched by server
-├── assets/
-│   ├── dioxus/         ← Wasm binary + JS glue
-│   │   ├── gorilla_coach_bg.wasm
-│   │   └── gorilla_coach.js
-│   ├── main.css
-│   ├── charts.js
-│   ├── manifest.json
-│   ├── sw.js
-│   ├── icon-192.png
-│   └── icon-512.png
-└── snippets/           ← wasm-bindgen inline JS snippets
+```mermaid
+graph LR
+    root["target/dx/gorilla_client/<br/>release/web/public/"] --> index["index.html<br/><i>Dioxus-generated,<br/>patched by server</i>"]
+    root --> assets["assets/"]
+    root --> snippets["snippets/<br/><i>wasm-bindgen inline<br/>JS snippets</i>"]
+    assets --> dioxus["dioxus/<br/><i>Wasm binary + JS glue</i>"]
+    dioxus --> wasm["gorilla_coach_bg.wasm"]
+    dioxus --> js["gorilla_coach.js"]
+    assets --> css["main.css"]
+    assets --> charts["charts.js"]
+    assets --> manifest["manifest.json"]
+    assets --> sw["sw.js"]
+    assets --> icon192["icon-192.png"]
+    assets --> icon512["icon-512.png"]
 ```
 
 ## wasm-bindgen: The Bridge

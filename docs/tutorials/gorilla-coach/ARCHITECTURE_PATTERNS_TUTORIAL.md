@@ -158,31 +158,35 @@ stronger domain boundaries through crate-level separation.
 
 ### The Three-Crate Workspace
 
-```
-gorilla_coach/                        (workspace root)
-├── gorilla_shared/                   ← domain models + API types (innermost)
-│   └── src/
-│       ├── domain.rs                 ← User, GarminDailyData, TrainingSetLog, etc.
-│       └── api.rs                    ← DashboardResponse, TrainingPlanResponse, etc.
-├── gorilla_server/                   ← Axum HTTP server (v1 HTML + v2 JSON API)
-│   └── src/
-│       ├── main.rs                   ← entry point, router, middleware, background worker
-│       ├── config.rs                 ← environment configuration
-│       ├── state.rs                  ← shared AppState struct
-│       ├── error.rs                  ← unified error type
-│       ├── vault.rs                  ← encryption
-│       ├── garmin/                   ← Garmin Connect SSO + API
-│       ├── handlers/                 ← HTTP route handlers (auth, calendar, chat, v2, etc.)
-│       ├── llm/                      ← LLM adapter trait + implementations
-│       ├── reports/                  ← tactical report generation (SITREP, AAR, DEBRIEF)
-│       ├── repository/               ← all database access (split by domain submodule)
-│       ├── ui/                       ← legacy v1 server-rendered HTML
-│       └── middleware/               ← CSRF, rate limiting
-└── gorilla_client/                   ← Dioxus 0.7 Wasm PWA
-    └── src/
-        ├── main.rs                   ← Router, App component
-        ├── api.rs                    ← HTTP client (gloo_net → /api/v2/*)
-        └── pages/                    ← page components (dashboard, training, chat, etc.)
+```mermaid
+graph TD
+    ROOT["gorilla_coach/ (workspace root)"]
+
+    ROOT --- SHARED["gorilla_shared/<br/><i>domain models + API types (innermost)</i>"]
+    SHARED --- SHARED_SRC["src/"]
+    SHARED_SRC --- DOMAIN_RS["domain.rs<br/><i>User, GarminDailyData, TrainingSetLog, etc.</i>"]
+    SHARED_SRC --- API_RS["api.rs<br/><i>DashboardResponse, TrainingPlanResponse, etc.</i>"]
+
+    ROOT --- SERVER["gorilla_server/<br/><i>Axum HTTP server (v1 HTML + v2 JSON API)</i>"]
+    SERVER --- SERVER_SRC["src/"]
+    SERVER_SRC --- MAIN["main.rs — entry point, router, middleware, background worker"]
+    SERVER_SRC --- CONFIG["config.rs — environment configuration"]
+    SERVER_SRC --- STATE["state.rs — shared AppState struct"]
+    SERVER_SRC --- ERROR["error.rs — unified error type"]
+    SERVER_SRC --- VAULT["vault.rs — encryption"]
+    SERVER_SRC --- GARMIN["garmin/ — Garmin Connect SSO + API"]
+    SERVER_SRC --- HANDLERS["handlers/ — HTTP route handlers"]
+    SERVER_SRC --- LLM["llm/ — LLM adapter trait + implementations"]
+    SERVER_SRC --- REPORTS["reports/ — tactical report generation"]
+    SERVER_SRC --- REPO["repository/ — all database access"]
+    SERVER_SRC --- UI["ui/ — legacy v1 server-rendered HTML"]
+    SERVER_SRC --- MW["middleware/ — CSRF, rate limiting"]
+
+    ROOT --- CLIENT["gorilla_client/<br/><i>Dioxus 0.7 Wasm PWA</i>"]
+    CLIENT --- CLIENT_SRC["src/"]
+    CLIENT_SRC --- CMAIN["main.rs — Router, App component"]
+    CLIENT_SRC --- CAPI["api.rs — HTTP client (gloo_net → /api/v2/*)"]
+    CLIENT_SRC --- PAGES["pages/ — page components"]
 ```
 
 This three-crate split provides **compile-time boundary enforcement**:
@@ -1084,48 +1088,43 @@ constructs a raw SQL query against `bio.garmin_daily_data`, PostgreSQL rejects i
 
 Let's trace the actual imports in Gorilla Coach:
 
-```
-main.rs
-  ├── config::AppConfig
-  ├── handlers::* (all handlers)
-  ├── middleware::{csrf_middleware, RateLimiter}
-  ├── repository::Repository
-  ├── state::{AppState, Metrics, LlmLogger}
-  ├── vault::Vault
-  └── llm::{LlmAdapter, GeminiAdapter, OllamaAdapter, FallbackLlmAdapter}
+```mermaid
+graph LR
+    MAIN["main.rs"] --> config_AppConfig["config::AppConfig"]
+    MAIN --> handlers_all["handlers::*"]
+    MAIN --> middleware["middleware::csrf_middleware, RateLimiter"]
+    MAIN --> repository_Repository["repository::Repository"]
+    MAIN --> state["state::AppState, Metrics, LlmLogger"]
+    MAIN --> vault_Vault["vault::Vault"]
+    MAIN --> llm_adapters["llm::LlmAdapter, GeminiAdapter,<br/>OllamaAdapter, FallbackLlmAdapter"]
 
-handlers/chat.rs
-  ├── error::AppError
-  ├── llm::LlmAdapter
-  ├── state::AppState
-  ├── ui
-  ├── handlers::{get_session, sanitize_filename, user_uploads_dir}
-  └── llm::{ToolDef, ToolExecutor, detect_intent, get_metric_stats, ALLOWED_METRICS}
+    CHAT["handlers/chat.rs"] --> error_AppError["error::AppError"]
+    CHAT --> llm_LlmAdapter["llm::LlmAdapter"]
+    CHAT --> state_AppState["state::AppState"]
+    CHAT --> ui["ui"]
+    CHAT --> handlers_session["handlers::get_session,<br/>sanitize_filename, user_uploads_dir"]
+    CHAT --> llm_tools["llm::ToolDef, ToolExecutor,<br/>detect_intent, get_metric_stats"]
 
-handlers/settings.rs
-  ├── domain::UserSettings
-  ├── garmin (direct call to garmin_login)
-  ├── state::AppState
-  ├── ui
-  └── handlers::get_session
+    SETTINGS["handlers/settings.rs"] --> domain_UserSettings["domain::UserSettings"]
+    SETTINGS --> garmin["garmin (garmin_login)"]
+    SETTINGS --> state_AppState2["state::AppState"]
+    SETTINGS --> ui2["ui"]
+    SETTINGS --> handlers_session2["handlers::get_session"]
 
-handlers/sync.rs
-  ├── garmin (direct calls to login, refresh, fetch)
-  ├── state::AppState
-  ├── vault::Vault
-  ├── domain::UserSettings
-  └── handlers::perform_user_sync (called from main.rs)
+    SYNC["handlers/sync.rs"] --> garmin2["garmin (login, refresh, fetch)"]
+    SYNC --> state_AppState3["state::AppState"]
+    SYNC --> vault_Vault2["vault::Vault"]
+    SYNC --> domain_UserSettings2["domain::UserSettings"]
+    SYNC --> perform_sync["handlers::perform_user_sync"]
 
-handlers/dashboard.rs
-  ├── state::AppState
-  ├── ui
-  └── handlers::get_session
+    DASH["handlers/dashboard.rs"] --> state_AppState4["state::AppState"]
+    DASH --> ui3["ui"]
+    DASH --> handlers_session3["handlers::get_session"]
 
-llm/analyst.rs
-  ├── domain::{AnalystIntent, GarminDailyData}
-  ├── error::AppError
-  ├── llm::LlmAdapter
-  └── repository::Repository
+    ANALYST["llm/analyst.rs"] --> domain_analyst["domain::AnalystIntent, GarminDailyData"]
+    ANALYST --> error_AppError2["error::AppError"]
+    ANALYST --> llm_LlmAdapter2["llm::LlmAdapter"]
+    ANALYST --> repository_Repo2["repository::Repository"]
 ```
 
 ### The Problem: Everything Depends on Everything
