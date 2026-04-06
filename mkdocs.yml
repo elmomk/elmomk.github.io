@@ -89,9 +89,6 @@ markdown_extensions:
 
 plugins:
   - search
-  - blog:
-      blog_dir: blog
-      authors: true
 
 nav:
   - Home: index.md
@@ -155,4 +152,5 @@ nav:
           - Architecture: tutorials/tmux-cc-attention/architecture.md
   - Blog:
       - blog/index.md
+      - Hello World: blog/posts/hello-world.md
   - About: about.md
