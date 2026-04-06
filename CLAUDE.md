@@ -4,44 +4,44 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Is
 
-Personal portfolio and documentation site for Mo (elmomk). Built with **Zensical** (a Material for MkDocs distribution). Hosted on GitHub Pages at https://elmomk.github.io.
+Personal portfolio and documentation site for Mo (elmomk). Built with **Zensical** (a standalone static site generator from the creators of Material for MkDocs). Hosted on GitHub Pages at https://elmomk.github.io.
 
 ## Build & Preview
 
 ```bash
-pip install zensical          # one-time setup
-zensical build --clean        # build to site/
-zensical serve                # local preview at localhost:8000
+pipx run zensical build --clean   # build to site/
+pipx run zensical serve           # local preview at localhost:8000
 ```
+
+Or use the `/build-site` skill command.
 
 Deployment is automatic — push to `main` triggers `.github/workflows/deploy.yml` which runs `zensical build --clean` and deploys the `site/` directory to GitHub Pages.
 
 ## Site Structure
 
-- `mkdocs.yml` — main config: nav tree, theme, plugins, markdown extensions
+- `mkdocs.yml` — main config: nav tree, theme, markdown extensions
 - `docs/` — all content
   - `index.md` — homepage (custom HTML, not standard markdown)
   - `about.md` — about page
-  - `projects/` — project intro pages (gorilla-coach, gapi, gorilla-mcp, cc-watcher, tmux-cc-attention, lifemanager, retrogames)
+  - `projects/` — project intro pages
   - `tutorials/` — deep-dive tutorials organized by project
-  - `blog/posts/` — blog posts (mkdocs-material blog plugin)
-  - `blog/.authors.yml` — blog author definitions
+  - `blog/index.md` — blog listing (manually maintained)
+  - `blog/posts/` — blog posts (plain markdown, no blog plugin)
   - `stylesheets/extra.css` — custom CSS (screenshot grids, project accents)
   - `assets/screenshots/` — project screenshots referenced from pages
-- `overrides/` — theme template overrides (currently empty)
 
 ## Content Conventions
 
-- **Diagrams**: Use Mermaid fenced blocks (` ```mermaid `), never ASCII art. All ASCII diagrams have been converted.
+- **Diagrams**: Use Mermaid fenced blocks (` ```mermaid `), never ASCII art
 - **Markdown extensions**: admonitions (`!!! tip`), tabbed content (`=== "Tab"`), grid cards (`<div class="grid cards">`), Material icons (`:material-icon-name:`), emoji (`:fontawesome-brands-rust:`)
-- **Blog posts**: frontmatter requires `date`, `authors`, `categories`. Use `<!-- more -->` for the excerpt separator.
+- **Blog posts**: Add new posts to `blog/posts/`, then manually update `blog/index.md` and add to `nav:` in `mkdocs.yml`
 - **Screenshots**: use `{ width="300" }` attribute for consistent sizing
 
 ## Key Config Details
 
 - Theme: Material with `modern` variant, teal accent, dark/light toggle
 - Mermaid support enabled via `pymdownx.superfences` custom fence
-- Blog plugin: `blog_dir: blog`, `authors: true`
+- Zensical does NOT support mkdocs-material plugins (blog, tags, etc.) — blog is manual
 - Nav is manually maintained in `mkdocs.yml` — new pages must be added there
 
 ## Cross-References
